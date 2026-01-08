@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Yingying Zhou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;400;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .project-card {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .project-card:hover {
+            background-color: #111111;
+        }
+        
+        .project-card:hover .project-number,
+        .project-card:hover .project-title,
+        .project-card:hover .project-year,
+        .project-card:hover .project-type {
+            color: #F9F7F3;
+        }
+        
+        .project-card:hover .project-image {
+            opacity: 0.3;
+        }
+        
+        .project-image {
+            transition: opacity 0.2s ease;
+        }
+        
+        .nav-link {
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+        
+        .nav-link:hover {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+        
+        .footer-link {
+            transition: all 0.15s ease;
+        }
+        
+        .footer-link:hover {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-[#F9F7F3]">
+    
+    <!-- Header -->
+    <header class="border-b-4 border-black fixed top-0 left-0 right-0 bg-[#F9F7F3] z-50">
+        <div class="container mx-auto px-6 lg:px-12 py-6 lg:py-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-[#111111] leading-none">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity cursor-pointer">Yingying Zhou</a>
+                </h1>
+                <nav class="flex gap-6 lg:gap-8 text-sm lg:text-base">
+                    <a href="index.html#about" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">About</a>
+                    <a href="projects.html" class="nav-link px-3 py-1 bg-[#111111] text-[#F9F7F3] font-medium">Projects</a>
+                    <a href="index.html#research" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Research</a>
+                    <a href="index.html#thesis" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Thesis</a>
+                    <a href="index.html#cv" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">CV</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Spacer for fixed header -->
+    <div class="h-20 lg:h-28"></div>
+
+    <!-- Projects Archive -->
+    <section class="border-b-4 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
+            <div class="mb-16 lg:mb-24">
+                <h1 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight mb-6">ALL PROJECTS</h1>
+                <p class="text-lg lg:text-xl text-[#5A5A5A] leading-relaxed max-w-3xl">A collection of design research exploring spatial systems, urban transformation, and the intersection of theory and practice.</p>
+            </div>
+            
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                
+                <!-- Project 01 -->
+                <a href="project-detail-01.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="/media/projects/a-tale-of-living/01-hero.webp" alt="A Tale of Living" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">01</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">A Tale of Living</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Habitat / Interior Design</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2020</p>
+                </a>
+
+                <!-- Project 02 -->
+                <a href="project-detail-02.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="/media/projects/cherry-on-the-cake/01-hero.webp" alt="Cherry on the Cake" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">02</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Cherry on the Cake</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Urban Interior Design / Urban Regeneration</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2019</p>
+                </a>
+
+                <!-- Project 03 -->
+                <a href="project-detail-03.html" class="project-card border-b p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="/media/projects/abracadabra/01-collage.webp" alt="Abracadabra" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">03</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Abracadabra</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Landscape + Interior Design / Under-viaduct Activation</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2018</p>
+                </a>
+
+                <!-- Project 04 -->
+                <a href="project-detail-04.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="https://placehold.co/800x600/E5E5E5/111111?text=Project+04" alt="Project 04" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">04</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Post-Industrial Site Remediation</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Landscape Architecture</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2017</p>
+                </a>
+
+                <!-- Project 05 -->
+                <a href="project-detail-05.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="https://placehold.co/800x600/E5E5E5/111111?text=Project+05" alt="Project 05" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">05</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Urban Garden Network</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Landscape Architecture</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2017</p>
+                </a>
+
+                <!-- Project 06 -->
+                <a href="project-detail-06.html" class="project-card border-b lg:border-b-0 p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
+                        <img src="https://placehold.co/800x600/E5E5E5/111111?text=Project+06" alt="Project 06" class="project-image w-full h-full object-cover">
+                    </div>
+                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">06</div>
+                    <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Ecological Waterfront</h2>
+                    <p class="project-type text-sm text-[#666666] mb-2 italic">Landscape Architecture</p>
+                    <p class="project-year text-sm font-medium text-[#4B4B4B]">2016</p>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#F9F7F3] border-t-4 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-16 lg:py-20">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div>
+                    <p class="text-2xl lg:text-3xl font-bold text-[#111111] mb-4">GET IN TOUCH</p>
+                    <p class="text-base text-[#666666]">Available for PhD programs starting Fall 2026</p>
+                </div>
+                <div class="flex flex-col gap-3 text-lg">
+                    <a href="mailto:kaychowing29@gmail.com" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">Email</a>
+                    <a href="https://scholar.google.com" target="_blank" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">Google Scholar</a>
+                    <a href="https://github.com/Yying-Zhou" target="_blank" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">GitHub</a>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t-2 border-black">
+                <p class="text-sm text-[#666666]">© 2026 Yingying Zhou. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -552,7 +552,7 @@ function handleFile(file) {
 }
 
 // URL param: instrument.html?scene=path/to/scene.ply
-const sceneParam = new URLSearchParams(window.location.search).get('scene');
+const sceneParam = new URLSearchParams(window.location.search).get('scene') || 'tuscan.glb';
 if (sceneParam) {
   const ext = sceneParam.split('.').pop().toLowerCase();
   if (ext === 'ply')   loadPLY(sceneParam);

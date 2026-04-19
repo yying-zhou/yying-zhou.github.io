@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo — Yingying Zhou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;400;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .nav-link {
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+
+        .nav-link:hover {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+
+        .nav-link.active {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+
+        .footer-link {
+            transition: all 0.15s ease;
+        }
+
+        .footer-link:hover {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+
+        .demo-item {
+            transition: background-color 0.15s ease;
+        }
+
+        .demo-item:hover {
+            background-color: #111111;
+        }
+
+        .demo-item:hover .demo-number,
+        .demo-item:hover .demo-title,
+        .demo-item:hover .demo-subtitle,
+        .demo-item:hover .demo-desc,
+        .demo-item:hover .demo-label,
+        .demo-item:hover .demo-meta,
+        .demo-item:hover .tag-badge {
+            color: #F9F7F3;
+        }
+
+        .demo-item:hover .tag-badge {
+            border-color: #F9F7F3;
+        }
+
+        .demo-item:hover .launch-btn {
+            background-color: #F9F7F3;
+            color: #111111;
+            border-color: #F9F7F3;
+        }
+
+        .demo-item:hover .divider {
+            border-color: rgba(249,247,243,0.2);
+        }
+
+        .launch-btn {
+            transition: all 0.15s ease;
+        }
+    </style>
+</head>
+<body class="bg-[#F9F7F3]">
+
+    <!-- Header -->
+    <header class="border-b-4 border-black fixed top-0 left-0 right-0 bg-[#F9F7F3] z-50">
+        <div class="container mx-auto px-6 lg:px-12 py-6 lg:py-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-[#111111] leading-none">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity cursor-pointer">Yingying Zhou</a>
+                </h1>
+                <nav class="flex gap-6 lg:gap-8 text-sm lg:text-base">
+                    <a href="index.html#about" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">About</a>
+                    <a href="projects.html" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Projects</a>
+                    <a href="index.html#research" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Research</a>
+                    <a href="index.html#thesis" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Thesis</a>
+                    <a href="demos.html" class="nav-link active px-3 py-1 font-medium">Demo</a>
+                    <a href="index.html#cv" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">CV</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Spacer for fixed header -->
+    <div class="h-20 lg:h-28"></div>
+
+    <!-- Page title -->
+    <section class="border-b-2 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+                <div class="lg:col-span-4">
+                    <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight">DEMO</h2>
+                </div>
+                <div class="lg:col-span-8 border-l-0 lg:border-l-2 border-black lg:pl-16">
+                    <p class="text-xl lg:text-2xl text-[#1A1A1A] leading-relaxed mb-8">
+                        Functional prototypes built in parallel with PhD research development. Each demo is a working research instrument, not a mockup — designed to be deployed, tested with participants, and iterated on.
+                    </p>
+                    <p class="text-lg text-[#666666] leading-relaxed">
+                        Source code for all demos is available on <a href="https://github.com/Yying-Zhou" target="_blank" class="underline hover:opacity-70">GitHub</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo list -->
+    <section class="border-b-4 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
+
+            <!-- Demo 01 -->
+            <div class="demo-item border-b border-black p-10 lg:p-16 cursor-pointer">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="demo-number text-6xl lg:text-7xl font-bold text-[#111111]">01</div>
+                    <div class="text-right">
+                        <p class="demo-meta text-sm font-medium text-[#4B4B4B] mb-1">2026</p>
+                        <p class="demo-meta text-sm text-[#666666]">PhD Research Instrument</p>
+                    </div>
+                </div>
+
+                <h3 class="demo-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">
+                    3DGS-PPGIS Value Annotation Instrument
+                </h3>
+                <p class="demo-subtitle text-sm text-[#666666] mb-8 italic">
+                    3D Gaussian Splatting / Participatory Mapping / Multispecies Justice
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-10">
+                    <div>
+                        <p class="demo-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
+                            A browser-based tool for annotating place-based values directly onto a photorealistic 3D scene. Participants tap a location in the scene, select a value type (recreational, aesthetic, wildlife habitat, avoidance), and add a free-text note. Pins are stored with 3D scene coordinates and dwell time.
+                        </p>
+                        <p class="demo-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed">
+                            Built as the Phase 2 research instrument for a PhD proposal targeting Prof. Nora Fagerholm's Sustainable Landscape Systems Research Group at the University of Turku. The instrument enables a controlled A/B comparison between 2D map-based PPGIS and 3D immersive PPGIS — testing whether representational modality affects which values participants report and where they locate them spatially.
+                        </p>
+                    </div>
+                    <div class="space-y-8">
+                        <div>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
+                            <p class="demo-meta text-sm text-[#666666] leading-relaxed">Does the shift from 2D map to 3D immersive scene systematically surface different value types — in particular, wildlife habitat and spatially marginal values invisible in plan view?</p>
+                        </div>
+                        <div>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">TECHNICAL STACK</p>
+                            <p class="demo-meta text-sm text-[#666666] leading-relaxed">Single-file HTML · Canvas 2D (demo) → Spark.js / THREE.js (production) · Supabase + PostGIS · No build step · Deployable as GitHub Pages URL</p>
+                        </div>
+                        <div>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">STATUS</p>
+                            <p class="demo-meta text-sm text-[#666666] leading-relaxed">Prototype — simulated scene. Replace <code class="text-xs bg-black bg-opacity-10 px-1 py-0.5">scene.splat</code> + <code class="text-xs bg-black bg-opacity-10 px-1 py-0.5">scene.glb</code> from Luma AI to connect to a real photogrammetric capture.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="divider border-t border-black mb-10">
+
+                <div class="flex flex-wrap gap-3 mb-10">
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">PPGIS</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">3D Gaussian Splatting</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Multispecies justice</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Participatory mapping</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">A/B study</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Luma AI</span>
+                </div>
+
+                <div class="flex flex-wrap gap-4">
+                    <a href="ppgis-demo/index.html"
+                       class="launch-btn inline-block px-6 py-3 border-2 border-black text-[#111111] font-bold text-base hover:bg-[#111111] hover:text-[#F9F7F3] transition-all"
+                       onclick="event.stopPropagation()">
+                        LAUNCH DEMO →
+                    </a>
+                    <a href="https://github.com/Yying-Zhou/ppgis-demo"
+                       target="_blank"
+                       class="launch-btn inline-block px-6 py-3 border-2 border-black text-[#111111] font-bold text-base hover:bg-[#111111] hover:text-[#F9F7F3] transition-all"
+                       onclick="event.stopPropagation()">
+                        VIEW ON GITHUB ↗
+                    </a>
+                </div>
+            </div>
+
+            <!-- Placeholder for future demos -->
+            <div class="p-10 lg:p-16">
+                <div class="demo-number text-6xl lg:text-7xl font-bold text-[#CCCCCC] mb-6">02</div>
+                <p class="text-lg text-[#CCCCCC]">Next demo in development.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#F9F7F3] border-t-4 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-16 lg:py-20">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div>
+                    <p class="text-2xl lg:text-3xl font-bold text-[#111111] mb-4">GET IN TOUCH</p>
+                    <p class="text-base text-[#666666]">Available for PhD programs starting Fall 2026</p>
+                </div>
+                <div class="flex flex-col gap-3 text-lg">
+                    <a href="mailto:kaychowing29@gmail.com" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">Email</a>
+                    <a href="https://scholar.google.com" target="_blank" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">Google Scholar</a>
+                    <a href="https://github.com/Yying-Zhou" target="_blank" class="footer-link px-4 py-2 text-[#1A1A1A] font-medium">GitHub</a>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t-2 border-black">
+                <p class="text-sm text-[#666666]">© 2026 Yingying Zhou. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

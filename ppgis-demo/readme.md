@@ -8,7 +8,7 @@ Part of Yingying Zhou's PhD research plan — *Making values visible: design-ori
 
 ## What this file is
 
-`index.html` is a **self-contained, zero-dependency demo** that runs in any browser with no build step, no server, and no installation. It simulates the core interaction of the real instrument: opening a 3D scene, tapping to place an annotation pin, selecting a value type, adding a note, and logging the result with scene coordinates and dwell time.
+`instrument.html` is a **self-contained, zero-dependency demo** that runs in any browser with no build step, no server, and no installation. It simulates the core interaction of the real instrument: opening a 3D scene, tapping to place an annotation pin, selecting a value type, adding a note, and logging the result with scene coordinates and dwell time.
 
 The scene in the demo is procedurally generated (a simulated photogrammetric splat). The section [Replacing the demo scene with your own Luma AI files](#replacing-the-demo-scene-with-your-own-luma-ai-files) explains how to swap it for a real `.splat` + `.glb` from your own photos.
 

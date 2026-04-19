@@ -8,66 +8,42 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f4f1eb;
-    --surface: #ffffff;
-    --surface2: #ede9e0;
-    --border: rgba(60,50,30,0.12);
-    --border-strong: rgba(60,50,30,0.22);
-    --text: #1a1712;
-    --text-muted: #7a7266;
-    --text-hint: #aaa49a;
-    --accent: #2d5a1b;
-    --accent-light: #e6f0e0;
-    --accent2: #1a3d6e;
-    --accent2-light: #dde8f4;
-    --coral: #c04a1e;
-    --coral-light: #f8ede8;
-    --amber: #a06010;
-    --amber-light: #f5eedd;
-    --radius: 8px;
-    --radius-lg: 14px;
+    --bg: #f4f1eb; --surface: #ffffff; --surface2: #ede9e0;
+    --border: rgba(60,50,30,0.12); --border-strong: rgba(60,50,30,0.22);
+    --text: #1a1712; --text-muted: #7a7266; --text-hint: #aaa49a;
+    --accent: #2d5a1b; --accent-light: #e6f0e0;
+    --accent2: #1a3d6e; --accent2-light: #dde8f4;
+    --coral: #c04a1e; --coral-light: #f8ede8;
+    --amber: #a06010; --amber-light: #f5eedd;
+    --radius: 8px; --radius-lg: 14px;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
-
   .app { display: grid; grid-template-columns: 1fr 340px; grid-template-rows: auto 1fr; height: 100vh; overflow: hidden; }
   header { grid-column: 1/-1; display: flex; align-items: center; gap: 12px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .logo { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; letter-spacing: 0.04em; color: var(--text); }
   .logo span { color: var(--accent); }
   .header-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); margin-left: auto; }
   .badge { font-family: 'DM Mono', monospace; font-size: 11px; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
-  .badge-3d  { background: var(--accent-light);  color: var(--accent);  border: 1px solid rgba(45,90,27,0.2); }
-  .badge-ply { background: var(--accent2-light); color: var(--accent2); border: 1px solid rgba(26,61,110,0.2); }
-  .badge-glb { background: var(--amber-light);   color: var(--amber);   border: 1px solid rgba(160,96,16,0.2); }
+  .badge-3d   { background: var(--accent-light);  color: var(--accent);  border: 1px solid rgba(45,90,27,0.2); }
+  .badge-ply  { background: var(--accent2-light); color: var(--accent2); border: 1px solid rgba(26,61,110,0.2); }
+  .badge-glb  { background: var(--amber-light);   color: var(--amber);   border: 1px solid rgba(160,96,16,0.2); }
   .badge-none { background: var(--surface2); color: var(--text-hint); border: 1px solid var(--border); }
-
   .scene-panel { position: relative; overflow: hidden; background: #1a1f14; }
   #sceneCanvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
-
-  /* Drop zone */
-  .drop-zone {
-    position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px;
-    border: 2px dashed rgba(255,255,255,0.12); margin: 28px;
-    border-radius: 12px; cursor: pointer; transition: border-color 0.2s; z-index: 5;
-  }
+  .drop-zone { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 2px dashed rgba(255,255,255,0.12); margin: 28px; border-radius: 12px; cursor: pointer; transition: border-color 0.2s; z-index: 5; }
   .drop-zone:hover, .drop-zone.dragover { border-color: rgba(109,184,92,0.55); }
   .dz-title { font-family: 'DM Mono', monospace; font-size: 15px; color: rgba(255,255,255,0.55); }
   .dz-sub   { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.28); }
   .dz-btn   { margin-top: 8px; padding: 8px 22px; border-radius: 6px; border: 1px solid rgba(109,184,92,0.35); background: rgba(45,90,27,0.28); color: #b8d8a8; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; transition: background 0.15s; }
   .dz-btn:hover { background: rgba(45,90,27,0.45); }
   #fileInput { display: none; }
-
-  /* Loading overlay */
   .loading-overlay { position: absolute; inset: 0; background: rgba(26,31,20,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 15; transition: opacity 0.35s; }
   .loading-overlay.hidden { opacity: 0; pointer-events: none; }
   .loading-label  { font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.6); }
   .loading-format { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.3); }
   .loading-bar-wrap { width: 180px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
   .loading-bar { height: 100%; width: 0%; background: #6db85c; border-radius: 2px; transition: width 0.25s; }
-
-  /* HUD */
   .scene-hud { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
   .hud-left { display: flex; flex-direction: column; gap: 6px; }
   .hud-pill { font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; }
@@ -80,8 +56,6 @@
   .ot-btn.on  { background: rgba(45,90,27,0.7);  color: #b8d8a8; border-color: rgba(100,200,80,0.3); }
   .ot-btn.on2 { background: rgba(26,61,110,0.7); color: #a8c0e0; border-color: rgba(80,140,220,0.3); }
   .coord-display { position: absolute; bottom: 14px; left: 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.38); pointer-events: none; }
-
-  /* Bottom sheet */
   .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border-strong); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 20px 20px 24px; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); z-index: 10; }
   .bottom-sheet.open { transform: translateY(0); }
   .sheet-handle { width: 36px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 16px; }
@@ -102,8 +76,6 @@
   .btn-save { flex: 1; padding: 9px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
   .btn-save:hover { background: #1e4012; }
   .btn-cancel { padding: 9px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: none; color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
-
-  /* Sidebar */
   .sidebar { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
   .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .stab { flex: 1; padding: 11px 8px; font-size: 12px; font-family: 'DM Mono', monospace; border: none; background: none; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
@@ -133,7 +105,6 @@
   .stat:last-child { border-right: none; }
   .stat-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--text); line-height: 1; }
   .stat-label { font-size: 10px; color: var(--text-hint); margin-top: 3px; }
-
   @media (max-width: 700px) {
     .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
     .sidebar { border-left: none; border-top: 1px solid var(--border); }
@@ -143,18 +114,16 @@
 </head>
 <body>
 <div class="app">
-
   <header>
     <div class="logo">3DGS<span>-PPGIS</span></div>
     <span class="badge badge-3d">condition: 3D</span>
     <span class="badge badge-none" id="formatBadge">no scene loaded</span>
-    <div class="header-meta" id="headerMeta">drop a .ply or .splat file to begin</div>
+    <div class="header-meta" id="headerMeta">drop a .ply, .splat or .glb file to begin</div>
   </header>
 
   <div class="scene-panel" id="scenePanel">
     <canvas id="sceneCanvas"></canvas>
 
-    <!-- Drop zone -->
     <div class="drop-zone" id="dropZone">
       <div class="dz-title">drop your scene file here</div>
       <div class="dz-sub">accepts .ply &nbsp;·&nbsp; .splat &nbsp;·&nbsp; .glb</div>
@@ -162,18 +131,16 @@
       <input type="file" id="fileInput" accept=".ply,.splat,.glb" />
     </div>
 
-    <!-- Loading -->
     <div class="loading-overlay hidden" id="loadingOverlay">
       <div class="loading-label"  id="loadingLabel">loading…</div>
       <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
       <div class="loading-format" id="loadingFormat"></div>
     </div>
 
-    <!-- HUD -->
     <div class="scene-hud" id="sceneHud" style="display:none">
       <div class="hud-left">
         <div class="hud-pill scene"><div class="hud-dot"></div><span id="hudLabel">scene</span></div>
-        <div class="hud-pill hint">tap to annotate &nbsp;·&nbsp; drag to orbit &nbsp;·&nbsp; scroll to zoom</div>
+        <div class="hud-pill hint">click to annotate · drag to orbit · WASD to walk · Q/E up/down</div>
       </div>
       <div class="overlay-toggle">
         <button class="ot-btn" id="bioBtn"    onclick="toggleBio()">bio overlay: off</button>
@@ -182,7 +149,6 @@
     </div>
     <div class="coord-display" id="coordDisplay"></div>
 
-    <!-- Bottom sheet -->
     <div class="bottom-sheet" id="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">What value does this place have?</div>
@@ -202,55 +168,34 @@
     </div>
   </div>
 
-  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-tabs">
       <button class="stab active" onclick="switchTab('pins',this)">pins</button>
       <button class="stab"        onclick="switchTab('code',this)">code</button>
       <button class="stab"        onclick="switchTab('schema',this)">schema</button>
     </div>
-
     <div class="sidebar-content" id="tab-pins">
-      <div class="pin-empty" id="pinEmpty">no annotations yet.<br>load a scene, then tap<br>anywhere to place a pin.</div>
+      <div class="pin-empty" id="pinEmpty">no annotations yet.<br>load a scene, then click<br>anywhere to place a pin.</div>
     </div>
-
     <div class="sidebar-content" id="tab-code" style="display:none">
       <div class="code-section">
         <div class="code-label">format detection on file drop</div>
         <pre><span class="kw">const</span> ext = file.name.split(<span class="str">'.'</span>).pop();
 <span class="kw">if</span> (ext === <span class="str">'ply'</span>)   loadPLY(file);
-<span class="kw">if</span> (ext === <span class="str">'splat'</span>) loadSplat(file);</pre>
+<span class="kw">if</span> (ext === <span class="str">'splat'</span>) loadSplat(file);
+<span class="kw">if</span> (ext === <span class="str">'glb'</span>)   loadGLB(file);</pre>
       </div>
       <div class="code-section">
-        <div class="code-label">PLY — point cloud + proxy</div>
-        <pre><span class="cm">// PLYLoader from Three.js addons</span>
-loader.<span class="kw">load</span>(url, (geo) => {
-  geo.center();
-  <span class="cm">// visible layer</span>
-  scene.add(<span class="kw">new</span> THREE.Points(geo, mat));
-  <span class="cm">// invisible proxy for raycasting</span>
-  proxyMesh = <span class="kw">new</span> THREE.Points(geo,
-    <span class="kw">new</span> THREE.PointsMaterial({
-      visible: <span class="kw">false</span>
-    }));
-  scene.add(proxyMesh);
+        <div class="code-label">WASD — listen on document, not window</div>
+        <pre><span class="cm">// suppress when typing in a note input</span>
+document.addEventListener(<span class="str">'keydown'</span>, e => {
+  <span class="kw">if</span> (document.activeElement.tagName
+      === <span class="str">'INPUT'</span>) <span class="kw">return</span>;
+  keys[e.code] = <span class="kw">true</span>;
 });</pre>
       </div>
       <div class="code-section">
-        <div class="code-label">SPLAT — Luma Web SDK + GLB proxy</div>
-        <pre><span class="cm">// visual layer</span>
-scene.add(<span class="kw">new</span> LumaSplatsThree({
-  source: <span class="str">'scene.splat'</span>
-}));
-<span class="cm">// invisible proxy mesh</span>
-gltfLoader.load(<span class="str">'scene.glb'</span>, (g) => {
-  g.scene.visible = <span class="kw">false</span>;
-  proxyMesh = g.scene;
-  scene.add(proxyMesh);
-});</pre>
-      </div>
-      <div class="code-section">
-        <div class="code-label">raycast on tap</div>
+        <div class="code-label">raycast on click</div>
         <pre>raycaster.setFromCamera(pointer, camera);
 <span class="kw">const</span> hits = raycaster
   .intersectObject(proxyMesh, <span class="kw">true</span>);
@@ -260,7 +205,6 @@ gltfLoader.load(<span class="str">'scene.glb'</span>, (g) => {
 }</pre>
       </div>
     </div>
-
     <div class="sidebar-content" id="tab-schema" style="display:none">
       <table class="schema-table">
         <thead><tr><th>field</th><th>type</th><th>description</th></tr></thead>
@@ -270,14 +214,13 @@ gltfLoader.load(<span class="str">'scene.glb'</span>, (g) => {
           <tr><td>value_type</td><td>text</td><td>recreational / aesthetic / wildlife / avoidance</td></tr>
           <tr><td>note</td><td>text</td><td>free-form annotation</td></tr>
           <tr><td>scene_x/y/z</td><td>float</td><td>3D hit point from raycast</td></tr>
-          <tr><td>format</td><td>text</td><td>'ply' or 'splat'</td></tr>
+          <tr><td>format</td><td>text</td><td>'ply', 'splat', or 'glb'</td></tr>
           <tr><td>dwell_ms</td><td>int</td><td>ms from scene load to first pin</td></tr>
           <tr><td>ts</td><td>timestamptz</td><td>UTC timestamp</td></tr>
         </tbody>
       </table>
-      <div class="schema-note">The <code>format</code> field lets you filter pin data by scene type in your analysis. PLY pins use point-cloud raycasting; SPLAT pins use a GLB proxy mesh.</div>
+      <div class="schema-note">The <code>format</code> field records which scene type was used, allowing you to filter pin data by format in your analysis.</div>
     </div>
-
     <div class="stats-bar">
       <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">pins</div></div>
       <div class="stat"><div class="stat-val" id="statWildlife">0</div><div class="stat-label">wildlife</div></div>
@@ -301,11 +244,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 
-// ── Colours ───────────────────────────────────────────────────────────────
 const VALUE_CSS = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
 const VALUE_HEX = { recreational:0x1a3d6e, aesthetic:0x2d5a1b, wildlife:0xa06010, avoidance:0xc04a1e };
 
-// ── State ─────────────────────────────────────────────────────────────────
 const pins = [];
 let selectedVal   = null;
 let pendingPos    = new THREE.Vector3();
@@ -315,7 +256,6 @@ let proxyMesh     = null;
 let showBio       = false;
 let showCanopy    = false;
 
-// ── Three.js ──────────────────────────────────────────────────────────────
 const canvas   = document.getElementById('sceneCanvas');
 const panel    = document.getElementById('scenePanel');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -328,53 +268,64 @@ const camera = new THREE.PerspectiveCamera(60, 1, 0.001, 1000);
 camera.position.set(0, 1, 4);
 
 const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.panSpeed = 0.8;
-controls.rotateSpeed = 0.6;
-controls.zoomSpeed = 1.2;
-controls.mouseButtons = {
-  LEFT:   THREE.MOUSE.ROTATE,
-  MIDDLE: THREE.MOUSE.DOLLY,
-  RIGHT:  THREE.MOUSE.PAN
+controls.enableDamping  = true;
+controls.dampingFactor  = 0.06;
+controls.panSpeed       = 0.8;
+controls.rotateSpeed    = 0.6;
+controls.zoomSpeed      = 1.2;
+controls.mouseButtons   = {
+  LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN
 };
 
-// ── WASD movement ─────────────────────────────────────────────────────────
+// ── WASD ──────────────────────────────────────────────────────────────────
+// FIX 1: listen on document (not window) so canvas focus doesn't swallow events
+// FIX 2: suppress when user is typing in the note input
+// FIX 3: prevent page scroll on arrow/space keys
 const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true; });
-window.addEventListener('keyup',   e => { keys[e.code] = false; });
+document.addEventListener('keydown', e => {
+  if (document.activeElement.tagName === 'INPUT' ||
+      document.activeElement.tagName === 'TEXTAREA') return;
+  keys[e.code] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+    e.preventDefault();
+  }
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-const _forward  = new THREE.Vector3();
-const _right    = new THREE.Vector3();
-const _up       = new THREE.Vector3(0, 1, 0);
-const SPEED     = 0.04;
+const _fwd  = new THREE.Vector3();
+const _rgt  = new THREE.Vector3();
+const _up   = new THREE.Vector3(0, 1, 0);
+const SPEED = 0.04;
 
 function applyWASD() {
-  if (!Object.values(keys).some(Boolean)) return;
-  camera.getWorldDirection(_forward);
-  _forward.y = 0;
-  _forward.normalize();
-  _right.crossVectors(_forward, _up).normalize();
+  const moving =
+    keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
+    keys['KeyE'] || keys['KeyQ'] ||
+    keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'];
+  if (!moving) return;
 
-  if (keys['KeyW'] || keys['ArrowUp'])    camera.position.addScaledVector(_forward,  SPEED);
-  if (keys['KeyS'] || keys['ArrowDown'])  camera.position.addScaledVector(_forward, -SPEED);
-  if (keys['KeyA'] || keys['ArrowLeft'])  camera.position.addScaledVector(_right,   -SPEED);
-  if (keys['KeyD'] || keys['ArrowRight']) camera.position.addScaledVector(_right,    SPEED);
-  if (keys['KeyE'])                        camera.position.y += SPEED;
-  if (keys['KeyQ'])                        camera.position.y -= SPEED;
+  camera.getWorldDirection(_fwd);
+  _fwd.y = 0;
+  _fwd.normalize();
+  _rgt.crossVectors(_fwd, _up).normalize();
 
-  // Keep OrbitControls target in sync so orbit doesn't snap
-  controls.target.addScaledVector(_forward,
-    (keys['KeyW'] || keys['ArrowUp'])   ?  SPEED :
-    (keys['KeyS'] || keys['ArrowDown']) ? -SPEED : 0
-  );
-  controls.target.addScaledVector(_right,
-    (keys['KeyD'] || keys['ArrowRight']) ?  SPEED :
-    (keys['KeyA'] || keys['ArrowLeft'])  ? -SPEED : 0
-  );
+  const fw = (keys['KeyW'] || keys['ArrowUp'])    ?  SPEED :
+             (keys['KeyS'] || keys['ArrowDown'])  ? -SPEED : 0;
+  const rt = (keys['KeyD'] || keys['ArrowRight']) ?  SPEED :
+             (keys['KeyA'] || keys['ArrowLeft'])  ? -SPEED : 0;
+  const up = keys['KeyE'] ? SPEED : keys['KeyQ'] ? -SPEED : 0;
+
+  camera.position.addScaledVector(_fwd, fw);
+  camera.position.addScaledVector(_rgt, rt);
+  camera.position.y += up;
+
+  // Keep OrbitControls target in sync so mouse orbit doesn't snap after walking
+  controls.target.addScaledVector(_fwd, fw);
+  controls.target.addScaledVector(_rgt, rt);
 }
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+scene.add(new THREE.DirectionalLight(0xffffff, 0.4));
 
 function resize() {
   const w = panel.clientWidth, h = panel.clientHeight;
@@ -403,23 +354,20 @@ function getHit(clientX, clientY) {
   return hits.length ? hits[0] : null;
 }
 
-// Track whether user dragged (to distinguish click from orbit)
 let dragDist = 0, mouseDownX = 0, mouseDownY = 0;
 canvas.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; dragDist = 0; });
 canvas.addEventListener('mousemove', e => {
   dragDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
   const hit = getHit(e.clientX, e.clientY);
   document.getElementById('coordDisplay').textContent = hit
-    ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}`
-    : '';
+    ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}` : '';
 });
 canvas.addEventListener('click', e => {
-  if (dragDist > 5) return; // was a drag, not a click
+  if (dragDist > 5) return;
   const hit = getHit(e.clientX, e.clientY);
   if (hit) { pendingPos.copy(hit.point); openSheet(); }
 });
 
-// Touch tap
 let touchStartX = 0, touchStartY = 0;
 canvas.addEventListener('touchstart', e => {
   if (e.touches.length === 1) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
@@ -436,34 +384,23 @@ canvas.addEventListener('touchend', e => {
 
 // ── PLY loader ────────────────────────────────────────────────────────────
 function loadPLY(source) {
-  const url      = source instanceof File ? URL.createObjectURL(source) : source;
+  const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
   showLoading('parsing .ply…', 'PLY · point cloud');
   setProgress(10);
-
   new PLYLoader().load(url,
     (geo) => {
       setProgress(75);
-      geo.computeBoundingBox();
-      geo.center();
-
-      // Vertex colours if available, fallback to green
+      geo.computeBoundingBox(); geo.center();
       const mat = new THREE.PointsMaterial({
-        size: 0.006,
-        vertexColors: geo.hasAttribute('color'),
-        color: geo.hasAttribute('color') ? 0xffffff : 0x7ab860,
-        sizeAttenuation: true,
+        size: 0.006, vertexColors: geo.hasAttribute('color'),
+        color: geo.hasAttribute('color') ? 0xffffff : 0x7ab860, sizeAttenuation: true,
       });
       scene.add(new THREE.Points(geo, mat));
-
-      // Invisible proxy — same geometry, larger threshold for easier picking
       proxyMesh = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.02, visible: false }));
       scene.add(proxyMesh);
-
       frameCameraToScene(geo.boundingBox);
-      setProgress(100);
-      sceneFormat = 'ply';
-      sceneLoadTime = Date.now();
+      setProgress(100); sceneFormat = 'ply'; sceneLoadTime = Date.now();
       onSceneReady(fileName, 'PLY · point cloud');
       if (source instanceof File) URL.revokeObjectURL(url);
     },
@@ -474,7 +411,7 @@ function loadPLY(source) {
 
 // ── SPLAT loader ──────────────────────────────────────────────────────────
 async function loadSplat(source) {
-  const url      = source instanceof File ? URL.createObjectURL(source) : source;
+  const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
   showLoading('loading splat renderer…', 'SPLAT · Gaussian Splatting');
   setProgress(15);
@@ -486,54 +423,36 @@ async function loadSplat(source) {
     const splat = new LumaSplatsThree({ source: url });
     scene.add(splat);
     splat.addEventListener('load', () => {
-      setProgress(100);
-      sceneFormat = 'splat';
-      sceneLoadTime = Date.now();
-      proxyMesh = splat; // LumaSplatsThree supports raycasting directly
+      setProgress(100); sceneFormat = 'splat'; sceneLoadTime = Date.now();
+      proxyMesh = splat;
       onSceneReady(fileName, 'SPLAT · Gaussian Splatting');
       if (source instanceof File) URL.revokeObjectURL(url);
     });
     setProgress(65);
-  } catch (err) {
-    console.error(err);
-    showError('Could not load .splat — check the file and try again.');
-  }
+  } catch (err) { console.error(err); showError('Could not load .splat — check the file and try again.'); }
 }
 
 // ── GLB loader ────────────────────────────────────────────────────────────
 function loadGLB(source) {
-  const url      = source instanceof File ? URL.createObjectURL(source) : source;
+  const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
   showLoading('loading .glb mesh…', 'GLB · 3D mesh');
   setProgress(10);
-
-  new GLTFLoader().load(
-    url,
+  new GLTFLoader().load(url,
     (gltf) => {
       setProgress(80);
-
-      // Compute bounding box across all meshes
       const box = new THREE.Box3().setFromObject(gltf.scene);
       const center = new THREE.Vector3();
       box.getCenter(center);
-      gltf.scene.position.sub(center); // centre at origin
-
-      // Add default material if mesh has none
+      gltf.scene.position.sub(center);
       gltf.scene.traverse(child => {
-        if (child.isMesh && !child.material) {
+        if (child.isMesh && !child.material)
           child.material = new THREE.MeshStandardMaterial({ color: 0x88aa66, roughness: 0.8 });
-        }
       });
-
       scene.add(gltf.scene);
-
-      // Proxy = the same scene object — raycasting works directly on meshes
       proxyMesh = gltf.scene;
-
       frameCameraToScene(new THREE.Box3().setFromObject(gltf.scene));
-      setProgress(100);
-      sceneFormat = 'glb';
-      sceneLoadTime = Date.now();
+      setProgress(100); sceneFormat = 'glb'; sceneLoadTime = Date.now();
       onSceneReady(fileName, 'GLB · 3D mesh');
       if (source instanceof File) URL.revokeObjectURL(url);
     },
@@ -541,6 +460,8 @@ function loadGLB(source) {
     (err) => { console.error(err); showError('Could not load .glb — check the file is valid.'); }
   );
 }
+
+// ── Camera framing ────────────────────────────────────────────────────────
 function frameCameraToScene(bbox) {
   if (!bbox) return;
   const size = new THREE.Vector3(), center = new THREE.Vector3();
@@ -594,7 +515,7 @@ function handleFile(file) {
   alert('Unsupported format. Please use a .ply, .splat, or .glb file.');
 }
 
-// URL param: instrument.html?scene=path/to/scene.ply
+// Auto-load scene from URL param or default file
 const sceneParam = new URLSearchParams(window.location.search).get('scene') || 'tuscan.glb';
 if (sceneParam) {
   const ext = sceneParam.split('.').pop().toLowerCase();
@@ -620,7 +541,7 @@ function dropPin3D(pos, valueType) {
   scene.add(stem);
 }
 
-// ── Sheet / pin / tab logic (exposed to window for onclick handlers) ───────
+// ── Exposed functions ─────────────────────────────────────────────────────
 window.openSheet = function() {
   selectedVal = null;
   document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
@@ -644,8 +565,7 @@ window.savePin = function() {
     scene_x: pendingPos.x.toFixed(3),
     scene_y: pendingPos.y.toFixed(3),
     scene_z: pendingPos.z.toFixed(3),
-    format:   sceneFormat,
-    dwell_ms: dwell,
+    format: sceneFormat, dwell_ms: dwell,
     ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
   };
   pins.push(pin);

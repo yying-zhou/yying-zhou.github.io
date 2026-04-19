@@ -354,12 +354,23 @@ const ctx    = canvas.getContext('2d');
 const panel  = document.getElementById('scenePanel');
 
 function resize() {
-  canvas.width  = panel.clientWidth;
-  canvas.height = panel.clientHeight;
+  const w = panel.clientWidth;
+  const h = panel.clientHeight;
+  if (w === 0 || h === 0) return;
+  canvas.width  = w;
+  canvas.height = h;
   drawScene();
 }
+
+// ResizeObserver fires after layout is complete — reliable for grid children
+const ro = new ResizeObserver(() => resize());
+ro.observe(panel);
+
+// Also handle window resize
 window.addEventListener('resize', resize);
-resize();
+
+// Fallback: defer one frame in case ResizeObserver fires before paint
+requestAnimationFrame(() => resize());
 
 // ── Scene generation (simulates photogrammetric 3DGS splat) ─────────────
 const splats = Array.from({ length: 2400 }, () => {

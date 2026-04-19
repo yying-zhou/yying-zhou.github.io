@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3DGS-PPGIS · Value Annotation Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1eb;
+    --surface: #ffffff;
+    --surface2: #ede9e0;
+    --border: rgba(60,50,30,0.12);
+    --border-strong: rgba(60,50,30,0.22);
+    --text: #1a1712;
+    --text-muted: #7a7266;
+    --text-hint: #aaa49a;
+    --accent: #2d5a1b;
+    --accent-light: #e6f0e0;
+    --accent2: #1a3d6e;
+    --accent2-light: #dde8f4;
+    --coral: #c04a1e;
+    --coral-light: #f8ede8;
+    --amber: #a06010;
+    --amber-light: #f5eedd;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --radius: 8px;
+    --radius-lg: 14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .app { display: grid; grid-template-columns: 1fr 340px; grid-template-rows: auto 1fr; height: 100vh; overflow: hidden; }
+  header { grid-column: 1/-1; display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .logo { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0.04em; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .header-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .badge-condition { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 4px; background: var(--accent-light); color: var(--accent); border: 1px solid rgba(45,90,27,0.2); }
+
+  /* ── Scene panel ── */
+  .scene-panel { position: relative; overflow: hidden; background: #2a3820; }
+  #sceneCanvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+  .scene-hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
+  .hud-left { display: flex; flex-direction: column; gap: 6px; }
+  .hud-pill { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; }
+  .hud-pill.scene { background: rgba(0,0,0,0.55); color: #c8d8b8; border: 1px solid rgba(255,255,255,0.12); }
+  .hud-pill.hint { background: rgba(0,0,0,0.4); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.08); }
+  .hud-dot { width: 7px; height: 7px; border-radius: 50%; background: #6db85c; }
+  .coord-display { position: absolute; bottom: 16px; left: 16px; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.45); pointer-events: none; }
+
+  /* ── Bottom sheet (mobile-style annotation UI) ── */
+  .bottom-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px 20px 24px;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 10;
+  }
+  .bottom-sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 16px; }
+  .sheet-title { font-size: 14px; font-weight: 500; margin-bottom: 14px; color: var(--text); }
+  .value-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 14px; }
+  .vbtn {
+    padding: 9px 12px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+    background: var(--surface); font-size: 13px; font-family: var(--sans);
+    cursor: pointer; color: var(--text-muted); text-align: left; transition: all 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .vbtn:hover { background: var(--surface2); color: var(--text); }
+  .vbtn.sel { color: var(--text); font-weight: 500; border-width: 1.5px; }
+  .vbtn.sel[data-val="recreational"] { background: var(--accent2-light); border-color: var(--accent2); color: var(--accent2); }
+  .vbtn.sel[data-val="aesthetic"]    { background: var(--accent-light);  border-color: var(--accent);  color: var(--accent); }
+  .vbtn.sel[data-val="wildlife"]     { background: var(--amber-light);   border-color: var(--amber);   color: var(--amber); }
+  .vbtn.sel[data-val="avoidance"]    { background: var(--coral-light);   border-color: var(--coral);   color: var(--coral); }
+  .vbtn-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .note-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .note-input {
+    flex: 1; padding: 8px 12px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius); background: var(--surface2); color: var(--text);
+    font-family: var(--sans); font-size: 13px; outline: none;
+  }
+  .note-input:focus { border-color: var(--accent); }
+  .sheet-actions { display: flex; gap: 8px; }
+  .btn-save {
+    flex: 1; padding: 9px; border-radius: var(--radius); border: none;
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 500;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .btn-save:hover { background: #1e4012; }
+  .btn-cancel {
+    padding: 9px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+    background: none; color: var(--text-muted); font-size: 13px; font-family: var(--sans); cursor: pointer;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .stab { flex: 1; padding: 11px 8px; font-size: 12px; font-family: var(--mono); border: none; background: none; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
+  .stab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+  /* ── Pin list ── */
+  .pin-empty { font-size: 13px; color: var(--text-hint); font-family: var(--mono); padding: 24px 0; line-height: 1.7; }
+  .pin-card { padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; background: var(--surface); }
+  .pin-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .pin-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .pin-type { font-size: 12px; font-weight: 500; }
+  .pin-ts { font-family: var(--mono); font-size: 10px; color: var(--text-hint); margin-left: auto; }
+  .pin-note { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+  .pin-coords { font-family: var(--mono); font-size: 10px; color: var(--text-hint); }
+
+  /* ── Code tab ── */
+  .code-section { margin-bottom: 18px; }
+  .code-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  pre {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px; font-family: var(--mono); font-size: 11px; line-height: 1.7;
+    overflow-x: auto; color: var(--text); white-space: pre;
+  }
+  .kw  { color: var(--accent2); }
+  .str { color: var(--accent); }
+  .cm  { color: var(--text-hint); font-style: italic; }
+  .fn  { color: var(--coral); }
+
+  /* ── Schema tab ── */
+  .schema-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .schema-table th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-strong); }
+  .schema-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .schema-table td:first-child { font-family: var(--mono); font-size: 11px; color: var(--accent2); }
+  .schema-table td:nth-child(2) { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+  .schema-table td:nth-child(3) { font-size: 11px; color: var(--text-muted); }
+  .schema-note { margin-top: 12px; padding: 10px 12px; background: var(--accent-light); border-radius: var(--radius); font-size: 12px; color: var(--accent); border: 1px solid rgba(45,90,27,0.15); line-height: 1.6; }
+
+  /* ── Stats bar ── */
+  .stats-bar { display: flex; gap: 0; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .stat { flex: 1; padding: 10px 12px; text-align: center; border-right: 1px solid var(--border); }
+  .stat:last-child { border-right: none; }
+  .stat-val { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--text); line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--text-hint); margin-top: 3px; }
+
+  /* ── Overlay toggle ── */
+  .overlay-toggle { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .ot-btn {
+    font-family: var(--mono); font-size: 11px; padding: 5px 10px;
+    border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.7); cursor: pointer;
+    transition: all 0.15s; pointer-events: all; text-align: left;
+  }
+  .ot-btn.on  { background: rgba(45,90,27,0.7); color: #b8d8a8; border-color: rgba(100,200,80,0.3); }
+  .ot-btn.on2 { background: rgba(26,61,110,0.7); color: #a8c0e0; border-color: rgba(80,140,220,0.3); }
+
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+    header { padding: 10px 16px; }
+    .sidebar { height: 280px; border-left: none; border-top: 1px solid var(--border); }
+    .overlay-toggle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="logo">3DGS<span>-PPGIS</span></div>
+    <span class="badge-condition">condition: 3D</span>
+    <div class="header-meta">Kupittaa Park · Turku · prototype v0.1</div>
+  </header>
+
+  <!-- Scene -->
+  <div class="scene-panel" id="scenePanel">
+    <canvas id="sceneCanvas"></canvas>
+
+    <div class="scene-hud">
+      <div class="hud-left">
+        <div class="hud-pill scene"><div class="hud-dot"></div>3DGS scene (simulated proxy mesh)</div>
+        <div class="hud-pill hint">tap anywhere to annotate a value</div>
+      </div>
+    </div>
+
+    <div class="overlay-toggle">
+      <button class="ot-btn" id="bioBtn" onclick="toggleBio()">bio overlay: off</button>
+      <button class="ot-btn" id="canopyBtn" onclick="toggleCanopy()">canopy layer: off</button>
+    </div>
+
+    <div class="coord-display" id="coordDisplay">x — · y — · z —</div>
+
+    <!-- Annotation bottom sheet -->
+    <div class="bottom-sheet" id="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">What value does this place have?</div>
+      <div class="value-grid">
+        <button class="vbtn" data-val="recreational" onclick="selectVal(this)">
+          <div class="vbtn-dot" style="background:#1a3d6e"></div>Recreational
+        </button>
+        <button class="vbtn" data-val="aesthetic" onclick="selectVal(this)">
+          <div class="vbtn-dot" style="background:#2d5a1b"></div>Aesthetic
+        </button>
+        <button class="vbtn" data-val="wildlife" onclick="selectVal(this)">
+          <div class="vbtn-dot" style="background:#a06010"></div>Wildlife habitat
+        </button>
+        <button class="vbtn" data-val="avoidance" onclick="selectVal(this)">
+          <div class="vbtn-dot" style="background:#c04a1e"></div>Avoidance
+        </button>
+      </div>
+      <div class="note-row">
+        <input class="note-input" id="noteInput" placeholder="Optional note about this place…" />
+      </div>
+      <div class="sheet-actions">
+        <button class="btn-save" onclick="savePin()">Save annotation</button>
+        <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="switchTab('pins',this)">pins</button>
+      <button class="stab" onclick="switchTab('code',this)">code</button>
+      <button class="stab" onclick="switchTab('schema',this)">schema</button>
+    </div>
+
+    <!-- Pins tab -->
+    <div class="sidebar-content" id="tab-pins">
+      <div class="pin-empty" id="pinEmpty">no annotations yet.<br>tap the scene to place<br>your first pin.</div>
+    </div>
+
+    <!-- Code tab -->
+    <div class="sidebar-content" id="tab-code" style="display:none">
+
+      <div class="code-section">
+        <div class="code-label">1 — load proxy mesh (real implementation)</div>
+        <pre><span class="kw">import</span> { GLTFLoader } <span class="kw">from</span> <span class="str">'three/addons'</span>;
+<span class="cm">// Luma AI exports .splat + .glb together</span>
+loader.<span class="fn">load</span>(<span class="str">'park_proxy.glb'</span>, (gltf) => {
+  proxyMesh = gltf.scene;
+  proxyMesh.visible = <span class="kw">false</span>; <span class="cm">// invisible; splat is visual</span>
+  scene.<span class="fn">add</span>(proxyMesh);
+});</pre>
+      </div>
+
+      <div class="code-section">
+        <div class="code-label">2 — raycast on tap → 3D hit point</div>
+        <pre>canvas.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  pointer.x = (e.clientX / W) * 2 - 1;
+  pointer.y = -(e.clientY / H) * 2 + 1;
+  raycaster.<span class="fn">setFromCamera</span>(pointer, camera);
+  <span class="kw">const</span> hits = raycaster
+    .<span class="fn">intersectObject</span>(proxyMesh, <span class="kw">true</span>);
+  <span class="kw">if</span> (hits.length) {
+    pendingPos = hits[0].point; <span class="cm">// Vector3</span>
+    <span class="fn">openSheet</span>();
+  }
+});</pre>
+      </div>
+
+      <div class="code-section">
+        <div class="code-label">3 — bio overlay via splat shader</div>
+        <pre><span class="cm">// Spark.js shader uniform</span>
+splatRenderer.setUniform(<span class="str">'u_bioScores'</span>,
+  Float32Array.<span class="fn">from</span>(bioScores));
+splatRenderer.setUniform(<span class="str">'u_showBio'</span>, 1.0);
+
+<span class="cm">// GLSL fragment (simplified)</span>
+<span class="kw">float</span> score = u_bioScores[splatIndex];
+vec3 color = <span class="fn">mix</span>(baseRGB,
+  <span class="fn">vec3</span>(0.2, 0.75, 0.3), score);</pre>
+      </div>
+
+      <div class="code-section">
+        <div class="code-label">4 — store to Supabase PostGIS</div>
+        <pre><span class="kw">await</span> supabase
+  .<span class="fn">from</span>(<span class="str">'pins'</span>)
+  .<span class="fn">insert</span>({
+    user_id:    <span class="fn">deviceHash</span>(),
+    condition:  <span class="str">'3D'</span>,
+    value_type: selectedVal,
+    note:       noteText,
+    scene_x: pos.x, scene_y: pos.y,
+    scene_z: pos.z,
+    dwell_ms: Date.now() - loadTime,
+    ts: <span class="kw">new</span> Date().<span class="fn">toISOString</span>()
+  });</pre>
+      </div>
+    </div>
+
+    <!-- Schema tab -->
+    <div class="sidebar-content" id="tab-schema" style="display:none">
+      <table class="schema-table">
+        <thead>
+          <tr><th>field</th><th>type</th><th>description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>user_id</td><td>text</td><td>anonymous device hash</td></tr>
+          <tr><td>condition</td><td>text</td><td>'2D' or '3D' — A/B split</td></tr>
+          <tr><td>value_type</td><td>text</td><td>recreational / aesthetic / wildlife / avoidance</td></tr>
+          <tr><td>note</td><td>text</td><td>free-form annotation</td></tr>
+          <tr><td>scene_x/y/z</td><td>float</td><td>3DGS local coordinates from raycast hit</td></tr>
+          <tr><td>geom</td><td>PostGIS POINT</td><td>WGS84 — if georeferenced via GCPs</td></tr>
+          <tr><td>dwell_ms</td><td>int</td><td>ms from scene load to first pin placed</td></tr>
+          <tr><td>ts</td><td>timestamptz</td><td>UTC timestamp</td></tr>
+        </tbody>
+      </table>
+      <div class="schema-note">
+        <strong>Biodiversity overlay:</strong> a separate table links each splat point index to a <code>bio_score</code> (0–1, from LAJI.fi) and <code>canopy_pct</code> (from city LiDAR). These are passed as shader uniforms to colour the splat scene in real time.
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">pins</div></div>
+      <div class="stat"><div class="stat-val" id="statWildlife">0</div><div class="stat-label">wildlife</div></div>
+      <div class="stat"><div class="stat-val" id="statDwell">—</div><div class="stat-label">avg dwell (s)</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Colour map ──────────────────────────────────────────────────────────
+const VALUE_COLORS = {
+  recreational: '#1a3d6e',
+  aesthetic:    '#2d5a1b',
+  wildlife:     '#a06010',
+  avoidance:    '#c04a1e'
+};
+
+// ── State ───────────────────────────────────────────────────────────────
+const pins        = [];
+let pendingCX     = 0, pendingCY = 0;
+let selectedVal   = null;
+let sceneLoadTime = Date.now();
+let showBio       = false;
+let showCanopy    = false;
+
+// ── Canvas setup ────────────────────────────────────────────────────────
+const canvas = document.getElementById('sceneCanvas');
+const ctx    = canvas.getContext('2d');
+const panel  = document.getElementById('scenePanel');
+
+function resize() {
+  canvas.width  = panel.clientWidth;
+  canvas.height = panel.clientHeight;
+  drawScene();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── Scene generation (simulates photogrammetric 3DGS splat) ─────────────
+const splats = Array.from({ length: 2400 }, () => {
+  const depth = Math.random();
+  const isVeg = Math.random() < 0.55;
+  return {
+    x: Math.random(), y: Math.random(), depth,
+    r: isVeg ? 20 + depth*30 + Math.random()*20  : 80 + Math.random()*60,
+    g: isVeg ? 55 + depth*50 + Math.random()*40  : 70 + Math.random()*50,
+    b: isVeg ? 10 + Math.random()*20              : 30 + Math.random()*40,
+    size: (1.5 + Math.random()*4) * depth,
+    alpha: 0.4 + Math.random()*0.35,
+    bioScore: Math.random()
+  };
+}).sort((a,b) => a.depth - b.depth);
+
+const trees = Array.from({ length: 22 }, () => ({
+  x: 0.05 + Math.random()*0.9,
+  y: 0.28 + Math.random()*0.5,
+  h: 0.05 + Math.random()*0.12,
+  species: Math.random() > 0.5 ? 'conifer' : 'broadleaf'
+}));
+
+// Fake bio score zones (clusters)
+const bioZones = [
+  { x:0.18, y:0.55, r:0.12, score:0.85 },
+  { x:0.72, y:0.48, r:0.10, score:0.78 },
+  { x:0.45, y:0.70, r:0.08, score:0.62 }
+];
+
+function bioAt(x, y) {
+  for (const z of bioZones) {
+    const d = Math.hypot(x-z.x, y-z.y);
+    if (d < z.r) return z.score * (1 - d/z.r);
+  }
+  return 0;
+}
+
+function drawScene() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Sky
+  const sky = ctx.createLinearGradient(0,0,0,H*0.42);
+  sky.addColorStop(0, '#8eb8d4'); sky.addColorStop(1, '#c8dcec');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H*0.42);
+
+  // Ground gradient
+  const gnd = ctx.createLinearGradient(0, H*0.38, 0, H);
+  gnd.addColorStop(0, '#4a7232'); gnd.addColorStop(0.5, '#3d6228'); gnd.addColorStop(1, '#2e4e1e');
+  ctx.fillStyle = gnd; ctx.fillRect(0, H*0.38, W, H*0.62);
+
+  // Path
+  ctx.beginPath();
+  ctx.moveTo(W*0.1, H*0.78); ctx.lineTo(W*0.3, H*0.62);
+  ctx.lineTo(W*0.65, H*0.60); ctx.lineTo(W*0.92, H*0.72);
+  ctx.lineWidth = W*0.04; ctx.strokeStyle = 'rgba(180,168,140,0.6)'; ctx.stroke();
+
+  // Splats
+  splats.forEach(s => {
+    let r = s.r, g = s.g, b = s.b;
+    if (showBio) {
+      const bio = bioAt(s.x, s.y);
+      if (bio > 0.05) { r = Math.round(r*(1-bio) + 40*bio); g = Math.round(g*(1-bio) + 180*bio); b = Math.round(b*(1-bio) + 60*bio); }
+    }
+    if (showCanopy && s.y > 0.35 && s.y < 0.75) {
+      const c = (1 - Math.abs(s.x - 0.5)*2) * 0.4;
+      r = Math.round(r*(1-c) + 20*c); g = Math.round(g*(1-c) + 100*c); b = Math.round(b*(1-c) + 30*c);
+    }
+    ctx.beginPath();
+    ctx.ellipse(s.x*W, s.y*H, s.size*2.2, s.size*1.1, s.x*Math.PI, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${s.alpha})`; ctx.fill();
+  });
+
+  // Trees
+  trees.forEach(t => {
+    const tx = t.x*W, ty = t.y*H, th = t.h*H;
+    ctx.fillStyle = `rgba(20,${55+Math.random()*10},10,0.15)`;
+    ctx.beginPath(); ctx.ellipse(tx+th*0.3, ty+th*0.1, th*0.6, th*0.2, 0.3, 0, Math.PI*2); ctx.fill();
+    if (t.species === 'conifer') {
+      ctx.fillStyle = `rgba(25,${60+Math.random()*15},12,0.88)`;
+      [[0,1.2,0.38],[0,0.85,0.46],[0,0.5,0.38]].forEach(([dy,hw,hy]) => {
+        ctx.beginPath(); ctx.moveTo(tx, ty-th*(1.0+dy));
+        ctx.lineTo(tx-th*hw, ty-th*hy); ctx.lineTo(tx+th*hw, ty-th*hy);
+        ctx.closePath(); ctx.fill();
+      });
+    } else {
+      ctx.fillStyle = `rgba(30,${75+Math.random()*15},15,0.82)`;
+      ctx.beginPath(); ctx.ellipse(tx, ty-th*0.7, th*0.55, th*0.6, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = `rgba(25,${65+Math.random()*10},12,0.5)`;
+      ctx.beginPath(); ctx.ellipse(tx+th*0.2, ty-th*0.5, th*0.3, th*0.35, 0.4, 0, Math.PI*2); ctx.fill();
+    }
+  });
+
+  // Bio overlay zones
+  if (showBio) {
+    bioZones.forEach(z => {
+      const grad = ctx.createRadialGradient(z.x*W, z.y*H, 0, z.x*W, z.y*H, z.r*W);
+      grad.addColorStop(0, `rgba(80,210,100,${z.score*0.28})`);
+      grad.addColorStop(1, 'rgba(80,210,100,0)');
+      ctx.fillStyle = grad; ctx.beginPath();
+      ctx.arc(z.x*W, z.y*H, z.r*W, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  // Pins
+  pins.forEach(p => {
+    const col = VALUE_COLORS[p.valueType];
+    ctx.beginPath(); ctx.arc(p.cx, p.cy, 9, 0, Math.PI*2);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.cx, p.cy+9);
+    ctx.lineTo(p.cx-5, p.cy+20); ctx.lineTo(p.cx+5, p.cy+20);
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  });
+}
+
+// ── Canvas interaction ───────────────────────────────────────────────────
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const sy = e.clientY - rect.top;
+  pendingCX = sx * (canvas.width  / rect.width);
+  pendingCY = sy * (canvas.height / rect.height);
+  selectedVal = null;
+  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('noteInput').value = '';
+  document.getElementById('sheet').classList.add('open');
+});
+
+canvas.addEventListener('mousemove', e => {
+  const rect  = canvas.getBoundingClientRect();
+  const nx    = (e.clientX - rect.left) / rect.width;
+  const ny    = (e.clientY - rect.top)  / rect.height;
+  const sx    = (nx*20-10).toFixed(2);
+  const sy    = (-(ny*10-5)).toFixed(2);
+  const sz    = (bioAt(nx, ny)*5).toFixed(2);
+  document.getElementById('coordDisplay').textContent = `x ${sx} · y ${sy} · z ${sz}`;
+});
+
+// ── Sheet logic ──────────────────────────────────────────────────────────
+function selectVal(btn) {
+  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selectedVal = btn.dataset.val;
+}
+
+function closeSheet() { document.getElementById('sheet').classList.remove('open'); }
+
+function savePin() {
+  if (!selectedVal) { alert('Please select a value type first.'); return; }
+  const note    = document.getElementById('noteInput').value.trim();
+  const dwell   = Date.now() - sceneLoadTime;
+  const nx      = pendingCX / canvas.width;
+  const ny      = pendingCY / canvas.height;
+  const pin = {
+    cx: pendingCX, cy: pendingCY,
+    valueType: selectedVal, note,
+    scene_x: (nx*20-10).toFixed(2),
+    scene_y: (-(ny*10-5)).toFixed(2),
+    scene_z: (bioAt(nx,ny)*5).toFixed(2),
+    dwell_ms: dwell,
+    ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+  };
+  pins.push(pin);
+  closeSheet();
+  drawScene();
+  renderPins();
+  updateStats();
+}
+
+// ── Pin list ─────────────────────────────────────────────────────────────
+function renderPins() {
+  const container = document.getElementById('tab-pins');
+  document.getElementById('pinEmpty')?.remove();
+  container.querySelectorAll('.pin-card').forEach(el => el.remove());
+  [...pins].reverse().forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'pin-card';
+    card.innerHTML = `
+      <div class="pin-header">
+        <div class="pin-dot" style="background:${VALUE_COLORS[p.valueType]}"></div>
+        <div class="pin-type">${p.valueType}</div>
+        <div class="pin-ts">${p.ts}</div>
+      </div>
+      ${p.note ? `<div class="pin-note">${p.note}</div>` : ''}
+      <div class="pin-coords">scene (${p.scene_x}, ${p.scene_y}, ${p.scene_z}) · dwell ${(p.dwell_ms/1000).toFixed(1)}s</div>
+    `;
+    container.prepend(card);
+  });
+}
+
+// ── Stats ────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent = pins.length;
+  document.getElementById('statWildlife').textContent = pins.filter(p => p.valueType==='wildlife').length;
+  const avgDwell = pins.length ? (pins.reduce((s,p) => s+p.dwell_ms,0)/pins.length/1000).toFixed(1) : '—';
+  document.getElementById('statDwell').textContent = avgDwell;
+}
+
+// ── Tab switching ────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  ['pins','code','schema'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Overlay toggles ──────────────────────────────────────────────────────
+function toggleBio() {
+  showBio = !showBio;
+  const btn = document.getElementById('bioBtn');
+  btn.textContent = `bio overlay: ${showBio ? 'on' : 'off'}`;
+  btn.className = `ot-btn${showBio ? ' on' : ''}`;
+  drawScene();
+}
+function toggleCanopy() {
+  showCanopy = !showCanopy;
+  const btn = document.getElementById('canopyBtn');
+  btn.textContent = `canopy layer: ${showCanopy ? 'on' : 'off'}`;
+  btn.className = `ot-btn${showCanopy ? ' on2' : ''}`;
+  drawScene();
+}
+</script>
+</body>
+</html>

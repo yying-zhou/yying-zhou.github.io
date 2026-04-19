@@ -329,7 +329,50 @@ camera.position.set(0, 1, 4);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
+controls.dampingFactor = 0.06;
+controls.panSpeed = 0.8;
+controls.rotateSpeed = 0.6;
+controls.zoomSpeed = 1.2;
+controls.mouseButtons = {
+  LEFT:   THREE.MOUSE.ROTATE,
+  MIDDLE: THREE.MOUSE.DOLLY,
+  RIGHT:  THREE.MOUSE.PAN
+};
+
+// ── WASD movement ─────────────────────────────────────────────────────────
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup',   e => { keys[e.code] = false; });
+
+const _forward  = new THREE.Vector3();
+const _right    = new THREE.Vector3();
+const _up       = new THREE.Vector3(0, 1, 0);
+const SPEED     = 0.04;
+
+function applyWASD() {
+  if (!Object.values(keys).some(Boolean)) return;
+  camera.getWorldDirection(_forward);
+  _forward.y = 0;
+  _forward.normalize();
+  _right.crossVectors(_forward, _up).normalize();
+
+  if (keys['KeyW'] || keys['ArrowUp'])    camera.position.addScaledVector(_forward,  SPEED);
+  if (keys['KeyS'] || keys['ArrowDown'])  camera.position.addScaledVector(_forward, -SPEED);
+  if (keys['KeyA'] || keys['ArrowLeft'])  camera.position.addScaledVector(_right,   -SPEED);
+  if (keys['KeyD'] || keys['ArrowRight']) camera.position.addScaledVector(_right,    SPEED);
+  if (keys['KeyE'])                        camera.position.y += SPEED;
+  if (keys['KeyQ'])                        camera.position.y -= SPEED;
+
+  // Keep OrbitControls target in sync so orbit doesn't snap
+  controls.target.addScaledVector(_forward,
+    (keys['KeyW'] || keys['ArrowUp'])   ?  SPEED :
+    (keys['KeyS'] || keys['ArrowDown']) ? -SPEED : 0
+  );
+  controls.target.addScaledVector(_right,
+    (keys['KeyD'] || keys['ArrowRight']) ?  SPEED :
+    (keys['KeyA'] || keys['ArrowLeft'])  ? -SPEED : 0
+  );
+}
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 
@@ -343,7 +386,7 @@ function resize() {
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
 
-renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
 
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();

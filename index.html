@@ -75,19 +75,18 @@
             scroll-behavior: smooth;
         }
 
-        /* Add extra space between fixed header and section titles when using anchor navigation */
         #about,
         #projects,
         #research,
         #thesis,
         #cv {
-            scroll-margin-top: 7rem; /* adjust this value to fine-tune spacing */
+            scroll-margin-top: 7rem;
         }
     </style>
 </head>
 <body class="bg-[#F9F7F3]">
     
-    <!-- Header - THICK 4px border -->
+    <!-- Header -->
     <header class="border-b-4 border-black fixed top-0 left-0 right-0 bg-[#F9F7F3] z-50">
         <div class="container mx-auto px-6 lg:px-12 py-6 lg:py-8">
             <div class="flex justify-between items-center">
@@ -99,6 +98,7 @@
                     <a href="projects.html" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Projects</a>
                     <a href="#research" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Research</a>
                     <a href="#thesis" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Thesis</a>
+                    <a href="demos.html" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Demo</a>
                     <a href="#cv" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">CV</a>
                 </nav>
             </div>
@@ -108,7 +108,7 @@
     <!-- Spacer for fixed header -->
     <div class="h-20 lg:h-28"></div>
 
-    <!-- About Section - THIN 2px border, MORE WHITESPACE -->
+    <!-- About Section -->
     <section id="about" class="border-b-2 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -127,13 +127,13 @@
         </div>
     </section>
 
-    <!-- Projects Section - THICK 4px border (major section) -->
+    <!-- Projects Section -->
     <section id="projects" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight4">SELECTED PROJECTS</h2>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-                <!-- Project 01 - THIN 1px internal borders -->
+                <!-- Project 01 -->
                 <div class="project-item border-b border-black lg:border-r border-black p-10 lg:p-16 cursor-pointer">
                     <div class="flex justify-between items-start mb-6">
                         <div class="project-number text-6xl lg:text-7xl font-bold text-[#111111]">01</div>
@@ -250,7 +250,7 @@
         </div>
     </section>
 
-    <!-- Research Section - THIN 2px border -->
+    <!-- Research Section -->
     <section id="research" class="border-b-2 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -270,7 +270,7 @@
         </div>
     </section>
 
-    <!-- Thesis Section - THIN 2px border -->
+    <!-- Thesis Section -->
     <section id="thesis" class="border-b-2 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight mb-16">THESIS</h2>
@@ -300,7 +300,7 @@
         </div>
     </section>
 
-    <!-- CV Section - THIN 2px border -->
+    <!-- CV Section -->
     <section id="cv" class="border-b-2 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -344,7 +344,7 @@
         </div>
     </section>
 
-    <!-- Footer - THICK 4px top border -->
+    <!-- Footer -->
     <footer class="bg-[#F9F7F3] border-t-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-16 lg:py-20">
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">

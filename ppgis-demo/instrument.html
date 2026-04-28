@@ -539,23 +539,41 @@ function loadPLY(source) {
 }
 
 // ── SPZ loader — Spark 2.0 ────────────────────────────────────────────────
+// onLoad must be a constructor option (not a property set afterwards).
+// SplatMesh also exposes `initialized` promise as a reliable fallback.
 function loadSPZ(source) {
   const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
   showLoading('loading via Spark 2.0…', 'SPZ · Gaussian Splatting');
   setProgress(15);
+  let done = false;
+
+  function onReady(mesh) {
+    if (done) return;
+    done = true;
+    setProgress(100);
+    sceneFormat   = 'spz';
+    sceneLoadTime = Date.now();
+    proxyMesh     = mesh;
+    try { const bbox = mesh.getBoundingBox(); if (bbox) frameCameraToScene(bbox); } catch (_) {}
+    onSceneReady(fileName, 'SPZ · Spark 2.0');
+    if (source instanceof File) URL.revokeObjectURL(url);
+  }
+
   try {
-    const splatMesh = new SplatMesh({ url });
+    const splatMesh = new SplatMesh({
+      url,
+      onProgress: (e) => { if (e.total) setProgress(15 + (e.loaded / e.total) * 75); },
+      onLoad: (mesh) => onReady(mesh),
+    });
     scene.add(splatMesh);
-    splatMesh.onLoad = () => {
-      setProgress(100);
-      sceneFormat   = 'spz';
-      sceneLoadTime = Date.now();
-      proxyMesh     = splatMesh;
-      onSceneReady(fileName, 'SPZ · Spark 2.0');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    };
-    setProgress(50);
+    setProgress(20);
+
+    // Fallback: initialized promise fires when splat is fully parsed
+    splatMesh.initialized
+      .then(() => onReady(splatMesh))
+      .catch(err => { console.error(err); showError('Could not load .spz — check the URL.'); });
+
   } catch (err) {
     console.error(err);
     showError('Could not load .spz — check the URL and try again.');

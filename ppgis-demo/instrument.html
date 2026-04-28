@@ -28,22 +28,61 @@
   .badge-3d   { background: var(--accent-light);  color: var(--accent);  border: 1px solid rgba(45,90,27,0.2); }
   .badge-ply  { background: var(--accent2-light); color: var(--accent2); border: 1px solid rgba(26,61,110,0.2); }
   .badge-glb  { background: var(--amber-light);   color: var(--amber);   border: 1px solid rgba(160,96,16,0.2); }
+  .badge-spz  { background: #f0e6f5; color: #6b2fa0; border: 1px solid rgba(107,47,160,0.2); }
   .badge-none { background: var(--surface2); color: var(--text-hint); border: 1px solid var(--border); }
+
   .scene-panel { position: relative; overflow: hidden; background: #1a1f14; }
   #sceneCanvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
-  .drop-zone { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 2px dashed rgba(255,255,255,0.12); margin: 28px; border-radius: 12px; cursor: pointer; transition: border-color 0.2s; z-index: 5; }
+
+  /* ── Scene picker (shown before any scene loads) ── */
+  .scene-picker {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+    z-index: 5; padding: 24px;
+  }
+  .picker-title { font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.45); letter-spacing: 0.06em; text-transform: uppercase; }
+  .picker-cards { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .picker-card {
+    width: 200px; padding: 18px 16px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+    cursor: pointer; transition: all 0.18s; text-align: left;
+  }
+  .picker-card:hover { background: rgba(255,255,255,0.09); border-color: rgba(109,184,92,0.45); }
+  .picker-card-icon { font-size: 22px; margin-bottom: 10px; }
+  .picker-card-title { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.75); margin-bottom: 5px; }
+  .picker-card-sub   { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+  .picker-card-badge { display: inline-block; margin-top: 10px; font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 3px; }
+  .picker-card-badge.demo { background: rgba(45,90,27,0.35); color: #b8d8a8; border: 1px solid rgba(100,200,80,0.2); }
+  .picker-card-badge.spz  { background: rgba(107,47,160,0.35); color: #d4aaff; border: 1px solid rgba(160,100,220,0.2); }
+  .picker-card-badge.file { background: rgba(26,61,110,0.35); color: #a8c0e0; border: 1px solid rgba(80,140,220,0.2); }
+  .picker-divider { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.2); }
+
+  /* Drop zone (shown when "upload file" card clicked) */
+  .drop-zone {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    border: 2px dashed rgba(255,255,255,0.12); margin: 28px;
+    border-radius: 12px; cursor: pointer; transition: border-color 0.2s; z-index: 6;
+  }
+  .drop-zone.visible { display: flex; }
   .drop-zone:hover, .drop-zone.dragover { border-color: rgba(109,184,92,0.55); }
   .dz-title { font-family: 'DM Mono', monospace; font-size: 15px; color: rgba(255,255,255,0.55); }
   .dz-sub   { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.28); }
-  .dz-btn   { margin-top: 8px; padding: 8px 22px; border-radius: 6px; border: 1px solid rgba(109,184,92,0.35); background: rgba(45,90,27,0.28); color: #b8d8a8; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; transition: background 0.15s; }
+  .dz-row   { display: flex; gap: 8px; margin-top: 8px; }
+  .dz-btn   { padding: 8px 18px; border-radius: 6px; border: 1px solid rgba(109,184,92,0.35); background: rgba(45,90,27,0.28); color: #b8d8a8; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; transition: background 0.15s; }
   .dz-btn:hover { background: rgba(45,90,27,0.45); }
+  .dz-btn-back { padding: 8px 18px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4); font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; }
   #fileInput { display: none; }
+
+  /* Loading overlay */
   .loading-overlay { position: absolute; inset: 0; background: rgba(26,31,20,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 15; transition: opacity 0.35s; }
   .loading-overlay.hidden { opacity: 0; pointer-events: none; }
   .loading-label  { font-family: 'DM Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.6); }
   .loading-format { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.3); }
   .loading-bar-wrap { width: 180px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
   .loading-bar { height: 100%; width: 0%; background: #6db85c; border-radius: 2px; transition: width 0.25s; }
+
+  /* HUD */
   .scene-hud { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
   .hud-left { display: flex; flex-direction: column; gap: 6px; }
   .hud-pill { font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; }
@@ -55,7 +94,14 @@
   .ot-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.65); cursor: pointer; transition: all 0.15s; }
   .ot-btn.on  { background: rgba(45,90,27,0.7);  color: #b8d8a8; border-color: rgba(100,200,80,0.3); }
   .ot-btn.on2 { background: rgba(26,61,110,0.7); color: #a8c0e0; border-color: rgba(80,140,220,0.3); }
+
+  /* Change scene button in HUD */
+  .hud-change { pointer-events: all; font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.55); cursor: pointer; transition: all 0.15s; }
+  .hud-change:hover { background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.8); }
+
   .coord-display { position: absolute; bottom: 14px; left: 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.38); pointer-events: none; }
+
+  /* Bottom sheet */
   .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border-strong); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 20px 20px 24px; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); z-index: 10; }
   .bottom-sheet.open { transform: translateY(0); }
   .sheet-handle { width: 36px; height: 4px; background: var(--border-strong); border-radius: 2px; margin: 0 auto 16px; }
@@ -76,6 +122,8 @@
   .btn-save { flex: 1; padding: 9px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; }
   .btn-save:hover { background: #1e4012; }
   .btn-cancel { padding: 9px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: none; color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+  /* Sidebar */
   .sidebar { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
   .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .stab { flex: 1; padding: 11px 8px; font-size: 12px; font-family: 'DM Mono', monospace; border: none; background: none; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
@@ -118,37 +166,79 @@
     <div class="logo">3DGS<span>-PPGIS</span></div>
     <span class="badge badge-3d">condition: 3D</span>
     <span class="badge badge-none" id="formatBadge">no scene loaded</span>
-    <div class="header-meta" id="headerMeta">drop a .ply, .splat or .glb file to begin</div>
+    <div class="header-meta" id="headerMeta">select a scene to begin</div>
   </header>
 
   <div class="scene-panel" id="scenePanel">
     <canvas id="sceneCanvas"></canvas>
 
-    <div class="drop-zone" id="dropZone">
-      <div class="dz-title">drop your scene file here</div>
-      <div class="dz-sub">accepts .ply &nbsp;·&nbsp; .splat &nbsp;·&nbsp; .glb</div>
-      <button class="dz-btn" onclick="document.getElementById('fileInput').click()">browse files</button>
-      <input type="file" id="fileInput" accept=".ply,.splat,.glb" />
+    <!-- ── Scene picker ── -->
+    <div class="scene-picker" id="scenePicker">
+      <div class="picker-title">choose a scene</div>
+      <div class="picker-cards">
+
+        <!-- Card 1: built-in demo GLB -->
+        <div class="picker-card" onclick="pickDemo()">
+          <div class="picker-card-icon">🏛️</div>
+          <div class="picker-card-title">Tuscan Villa</div>
+          <div class="picker-card-sub">Built-in demo scene.<br>GLB mesh, loads instantly.</div>
+          <div class="picker-card-badge demo">demo · GLB</div>
+        </div>
+
+        <!-- Card 2: your SPZ scene -->
+        <div class="picker-card" onclick="pickSPZ()">
+          <div class="picker-card-icon">🌳</div>
+          <div class="picker-card-title">My Scene</div>
+          <div class="picker-card-sub">Your Nerfstudio capture.<br>SPZ · Spark 2.0 renderer.</div>
+          <div class="picker-card-badge spz">research · SPZ</div>
+        </div>
+
+        <!-- Card 3: upload file -->
+        <div class="picker-card" onclick="pickUpload()">
+          <div class="picker-card-icon">📂</div>
+          <div class="picker-card-title">Upload file</div>
+          <div class="picker-card-sub">Drop any scene file.<br>.ply · .splat · .spz · .glb</div>
+          <div class="picker-card-badge file">custom</div>
+        </div>
+
+      </div>
     </div>
 
+    <!-- Drop zone (shown when upload card is picked) -->
+    <div class="drop-zone" id="dropZone">
+      <div class="dz-title">drop your scene file here</div>
+      <div class="dz-sub">accepts .ply &nbsp;·&nbsp; .splat &nbsp;·&nbsp; .spz &nbsp;·&nbsp; .glb</div>
+      <div class="dz-row">
+        <button class="dz-btn" onclick="document.getElementById('fileInput').click()">browse files</button>
+        <button class="dz-btn-back" onclick="showPicker()">← back</button>
+      </div>
+      <input type="file" id="fileInput" accept=".ply,.splat,.spz,.glb" />
+    </div>
+
+    <!-- Loading overlay -->
     <div class="loading-overlay hidden" id="loadingOverlay">
       <div class="loading-label"  id="loadingLabel">loading…</div>
       <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
       <div class="loading-format" id="loadingFormat"></div>
     </div>
 
+    <!-- HUD (shown after scene loads) -->
     <div class="scene-hud" id="sceneHud" style="display:none">
       <div class="hud-left">
         <div class="hud-pill scene"><div class="hud-dot"></div><span id="hudLabel">scene</span></div>
         <div class="hud-pill hint">click to annotate · drag to orbit · WASD to walk · Q/E up/down</div>
       </div>
-      <div class="overlay-toggle">
-        <button class="ot-btn" id="bioBtn"    onclick="toggleBio()">bio overlay: off</button>
-        <button class="ot-btn" id="canopyBtn" onclick="toggleCanopy()">canopy layer: off</button>
+      <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
+        <button class="hud-change" onclick="showPicker()">⇄ change scene</button>
+        <div class="overlay-toggle">
+          <button class="ot-btn" id="bioBtn"    onclick="toggleBio()">bio overlay: off</button>
+          <button class="ot-btn" id="canopyBtn" onclick="toggleCanopy()">canopy layer: off</button>
+        </div>
       </div>
     </div>
     <div class="coord-display" id="coordDisplay"></div>
 
+    <!-- Bottom sheet -->
     <div class="bottom-sheet" id="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">What value does this place have?</div>
@@ -168,6 +258,7 @@
     </div>
   </div>
 
+  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-tabs">
       <button class="stab active" onclick="switchTab('pins',this)">pins</button>
@@ -179,20 +270,25 @@
     </div>
     <div class="sidebar-content" id="tab-code" style="display:none">
       <div class="code-section">
-        <div class="code-label">format detection on file drop</div>
-        <pre><span class="kw">const</span> ext = file.name.split(<span class="str">'.'</span>).pop();
-<span class="kw">if</span> (ext === <span class="str">'ply'</span>)   loadPLY(file);
-<span class="kw">if</span> (ext === <span class="str">'splat'</span>) loadSplat(file);
-<span class="kw">if</span> (ext === <span class="str">'glb'</span>)   loadGLB(file);</pre>
+        <div class="code-label">scene picker routing</div>
+        <pre><span class="cm">// demo GLB</span>
+<span class="kw">function</span> pickDemo() { loadGLB(<span class="str">'tuscan.glb'</span>); }
+<span class="cm">// your SPZ via Spark</span>
+<span class="kw">function</span> pickSPZ()  { loadSPZ(<span class="str">'MY_SPZ_URL'</span>); }
+<span class="cm">// file upload</span>
+<span class="kw">function</span> pickUpload() { showDropZone(); }</pre>
       </div>
       <div class="code-section">
-        <div class="code-label">WASD — listen on document, not window</div>
-        <pre><span class="cm">// suppress when typing in a note input</span>
-document.addEventListener(<span class="str">'keydown'</span>, e => {
-  <span class="kw">if</span> (document.activeElement.tagName
-      === <span class="str">'INPUT'</span>) <span class="kw">return</span>;
-  keys[e.code] = <span class="kw">true</span>;
-});</pre>
+        <div class="code-label">SPZ loader — Spark 2.0</div>
+        <pre><span class="kw">import</span> { SplatMesh }
+  <span class="kw">from</span> <span class="str">'@sparkjsdev/spark'</span>;
+
+<span class="kw">const</span> splat = <span class="kw">new</span> SplatMesh({ url });
+scene.add(splat);
+splat.onLoad = () => {
+  proxyMesh = splat;
+  onSceneReady(...);
+};</pre>
       </div>
       <div class="code-section">
         <div class="code-label">raycast on click</div>
@@ -214,12 +310,12 @@ document.addEventListener(<span class="str">'keydown'</span>, e => {
           <tr><td>value_type</td><td>text</td><td>recreational / aesthetic / wildlife / avoidance</td></tr>
           <tr><td>note</td><td>text</td><td>free-form annotation</td></tr>
           <tr><td>scene_x/y/z</td><td>float</td><td>3D hit point from raycast</td></tr>
-          <tr><td>format</td><td>text</td><td>'ply', 'splat', or 'glb'</td></tr>
+          <tr><td>format</td><td>text</td><td>'ply', 'spz', 'splat', or 'glb'</td></tr>
           <tr><td>dwell_ms</td><td>int</td><td>ms from scene load to first pin</td></tr>
           <tr><td>ts</td><td>timestamptz</td><td>UTC timestamp</td></tr>
         </tbody>
       </table>
-      <div class="schema-note">The <code>format</code> field records which scene type was used, allowing you to filter pin data by format in your analysis.</div>
+      <div class="schema-note">The <code>format</code> field records which scene type was used, letting you filter pin data by scene in analysis.</div>
     </div>
     <div class="stats-bar">
       <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">pins</div></div>
@@ -229,11 +325,16 @@ document.addEventListener(<span class="str">'keydown'</span>, e => {
   </div>
 </div>
 
+<!-- ─────────────────────────────────────────────────────────────────────────
+     IMPORTANT: Spark 2.0 requires Three.js r180.
+     Replace YOUR_SPZ_URL below with your Supabase public URL.
+──────────────────────────────────────────────────────────────────────────── -->
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.0.0/spark.module.js"
   }
 }
 </script>
@@ -243,6 +344,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { SplatMesh }     from '@sparkjsdev/spark';
+
+// ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
+// Replace with your Supabase Storage public URL after uploading your .spz
+const MY_SPZ_URL = 'https://bvhvuxtmdjqxjbexltmv.supabase.co/storage/v1/object/public/scenes/splat.spz';
+// ─────────────────────────────────────────────────────────────────────────
 
 const VALUE_CSS = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
 const VALUE_HEX = { recreational:0x1a3d6e, aesthetic:0x2d5a1b, wildlife:0xa06010, avoidance:0xc04a1e };
@@ -268,58 +375,39 @@ const camera = new THREE.PerspectiveCamera(60, 1, 0.001, 1000);
 camera.position.set(0, 1, 4);
 
 const controls = new OrbitControls(camera, canvas);
-controls.enableDamping  = true;
-controls.dampingFactor  = 0.06;
-controls.panSpeed       = 0.8;
-controls.rotateSpeed    = 0.6;
-controls.zoomSpeed      = 1.2;
-controls.mouseButtons   = {
-  LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN
-};
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.panSpeed      = 0.8;
+controls.rotateSpeed   = 0.6;
+controls.zoomSpeed     = 1.2;
+controls.mouseButtons  = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
 // ── WASD ──────────────────────────────────────────────────────────────────
-// FIX 1: listen on document (not window) so canvas focus doesn't swallow events
-// FIX 2: suppress when user is typing in the note input
-// FIX 3: prevent page scroll on arrow/space keys
 const keys = {};
 document.addEventListener('keydown', e => {
   if (document.activeElement.tagName === 'INPUT' ||
       document.activeElement.tagName === 'TEXTAREA') return;
   keys[e.code] = true;
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
-    e.preventDefault();
-  }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-const _fwd  = new THREE.Vector3();
-const _rgt  = new THREE.Vector3();
-const _up   = new THREE.Vector3(0, 1, 0);
+const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _up = new THREE.Vector3(0,1,0);
 const SPEED = 0.04;
 
 function applyWASD() {
-  const moving =
-    keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
-    keys['KeyE'] || keys['KeyQ'] ||
-    keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'];
+  const moving = keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||
+                 keys['KeyE']||keys['KeyQ']||
+                 keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight'];
   if (!moving) return;
-
-  camera.getWorldDirection(_fwd);
-  _fwd.y = 0;
-  _fwd.normalize();
+  camera.getWorldDirection(_fwd); _fwd.y = 0; _fwd.normalize();
   _rgt.crossVectors(_fwd, _up).normalize();
-
-  const fw = (keys['KeyW'] || keys['ArrowUp'])    ?  SPEED :
-             (keys['KeyS'] || keys['ArrowDown'])  ? -SPEED : 0;
-  const rt = (keys['KeyD'] || keys['ArrowRight']) ?  SPEED :
-             (keys['KeyA'] || keys['ArrowLeft'])  ? -SPEED : 0;
+  const fw = (keys['KeyW']||keys['ArrowUp'])    ?  SPEED : (keys['KeyS']||keys['ArrowDown'])  ? -SPEED : 0;
+  const rt = (keys['KeyD']||keys['ArrowRight']) ?  SPEED : (keys['KeyA']||keys['ArrowLeft'])  ? -SPEED : 0;
   const up = keys['KeyE'] ? SPEED : keys['KeyQ'] ? -SPEED : 0;
-
   camera.position.addScaledVector(_fwd, fw);
   camera.position.addScaledVector(_rgt, rt);
   camera.position.y += up;
-
-  // Keep OrbitControls target in sync so mouse orbit doesn't snap after walking
   controls.target.addScaledVector(_fwd, fw);
   controls.target.addScaledVector(_rgt, rt);
 }
@@ -336,7 +424,6 @@ function resize() {
 }
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
-
 renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
 
 // ── Raycasting ────────────────────────────────────────────────────────────
@@ -382,6 +469,48 @@ canvas.addEventListener('touchend', e => {
   }
 }, { passive: true });
 
+// ── Scene picker UI ───────────────────────────────────────────────────────
+function clearScene() {
+  // Remove all non-light objects from scene when switching
+  const toRemove = [];
+  scene.traverse(obj => {
+    if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
+      toRemove.push(obj);
+  });
+  toRemove.forEach(obj => scene.remove(obj));
+  proxyMesh = null;
+}
+
+window.showPicker = function() {
+  clearScene();
+  document.getElementById('scenePicker').style.display = 'flex';
+  document.getElementById('dropZone').classList.remove('visible');
+  document.getElementById('sceneHud').style.display = 'none';
+  document.getElementById('formatBadge').textContent = 'no scene loaded';
+  document.getElementById('formatBadge').className = 'badge badge-none';
+  document.getElementById('headerMeta').textContent = 'select a scene to begin';
+};
+
+window.pickDemo = function() {
+  document.getElementById('scenePicker').style.display = 'none';
+  loadGLB('tuscan.glb');
+};
+
+window.pickSPZ = function() {
+  document.getElementById('scenePicker').style.display = 'none';
+  loadSPZ(MY_SPZ_URL);
+};
+
+window.pickUpload = function() {
+  document.getElementById('scenePicker').style.display = 'none';
+  document.getElementById('dropZone').classList.add('visible');
+};
+
+function showDropZone() {
+  document.getElementById('scenePicker').style.display = 'none';
+  document.getElementById('dropZone').classList.add('visible');
+}
+
 // ── PLY loader ────────────────────────────────────────────────────────────
 function loadPLY(source) {
   const url = source instanceof File ? URL.createObjectURL(source) : source;
@@ -409,11 +538,35 @@ function loadPLY(source) {
   );
 }
 
-// ── SPLAT loader ──────────────────────────────────────────────────────────
+// ── SPZ loader — Spark 2.0 ────────────────────────────────────────────────
+function loadSPZ(source) {
+  const url = source instanceof File ? URL.createObjectURL(source) : source;
+  const fileName = source instanceof File ? source.name : source.split('/').pop();
+  showLoading('loading via Spark 2.0…', 'SPZ · Gaussian Splatting');
+  setProgress(15);
+  try {
+    const splatMesh = new SplatMesh({ url });
+    scene.add(splatMesh);
+    splatMesh.onLoad = () => {
+      setProgress(100);
+      sceneFormat   = 'spz';
+      sceneLoadTime = Date.now();
+      proxyMesh     = splatMesh;
+      onSceneReady(fileName, 'SPZ · Spark 2.0');
+      if (source instanceof File) URL.revokeObjectURL(url);
+    };
+    setProgress(50);
+  } catch (err) {
+    console.error(err);
+    showError('Could not load .spz — check the URL and try again.');
+  }
+}
+
+// ── SPLAT loader — Luma Web SDK (legacy .splat files) ────────────────────
 async function loadSplat(source) {
   const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading splat renderer…', 'SPLAT · Gaussian Splatting');
+  showLoading('loading .splat…', 'SPLAT · Gaussian Splatting');
   setProgress(15);
   try {
     const { LumaSplatsThree } = await import(
@@ -476,7 +629,8 @@ function frameCameraToScene(bbox) {
 
 // ── UI helpers ────────────────────────────────────────────────────────────
 function showLoading(label, fmt) {
-  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('scenePicker').style.display = 'none';
+  document.getElementById('dropZone').classList.remove('visible');
   document.getElementById('loadingOverlay').classList.remove('hidden');
   document.getElementById('loadingLabel').textContent  = label;
   document.getElementById('loadingFormat').textContent = fmt;
@@ -491,7 +645,7 @@ function onSceneReady(fileName, fmtLabel) {
   document.getElementById('sceneHud').style.display = 'flex';
   document.getElementById('hudLabel').textContent = fileName;
   document.getElementById('formatBadge').textContent = fmtLabel;
-  const badgeClass = { ply: 'badge-ply', splat: 'badge-3d', glb: 'badge-glb' };
+  const badgeClass = { ply:'badge-ply', splat:'badge-3d', spz:'badge-spz', glb:'badge-glb' };
   document.getElementById('formatBadge').className = 'badge ' + (badgeClass[sceneFormat] || 'badge-none');
   document.getElementById('headerMeta').textContent = 'prototype v0.1';
 }
@@ -509,17 +663,19 @@ document.getElementById('fileInput').addEventListener('change', e => {
 });
 function handleFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'ply')   { loadPLY(file);   return; }
-  if (ext === 'splat') { loadSplat(file); return; }
-  if (ext === 'glb')   { loadGLB(file);   return; }
-  alert('Unsupported format. Please use a .ply, .splat, or .glb file.');
+  if (ext === 'ply')              { loadPLY(file);   return; }
+  if (ext === 'spz')              { loadSPZ(file);   return; }
+  if (ext === 'splat')            { loadSplat(file); return; }
+  if (ext === 'glb')              { loadGLB(file);   return; }
+  alert('Unsupported format. Please use .ply, .spz, .splat, or .glb');
 }
 
-// Auto-load scene from URL param or default file
-const sceneParam = new URLSearchParams(window.location.search).get('scene') || 'tuscan.glb';
+// URL param override: instrument.html?scene=https://...
+const sceneParam = new URLSearchParams(window.location.search).get('scene');
 if (sceneParam) {
   const ext = sceneParam.split('.').pop().toLowerCase();
   if (ext === 'ply')   loadPLY(sceneParam);
+  if (ext === 'spz')   loadSPZ(sceneParam);
   if (ext === 'splat') loadSplat(sceneParam);
   if (ext === 'glb')   loadGLB(sceneParam);
 }
@@ -548,13 +704,10 @@ window.openSheet = function() {
   document.getElementById('noteInput').value = '';
   document.getElementById('sheet').classList.add('open');
 };
-window.closeSheet = function() {
-  document.getElementById('sheet').classList.remove('open');
-};
+window.closeSheet = function() { document.getElementById('sheet').classList.remove('open'); };
 window.selectVal = function(btn) {
   document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  selectedVal = btn.dataset.val;
+  btn.classList.add('sel'); selectedVal = btn.dataset.val;
 };
 window.savePin = function() {
   if (!selectedVal) { alert('Please select a value type first.'); return; }
@@ -570,9 +723,7 @@ window.savePin = function() {
   };
   pins.push(pin);
   dropPin3D(pendingPos, selectedVal);
-  closeSheet();
-  renderPins();
-  updateStats();
+  closeSheet(); renderPins(); updateStats();
 };
 window.switchTab = function(name, btn) {
   ['pins','code','schema'].forEach(t =>

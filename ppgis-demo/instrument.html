@@ -344,7 +344,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-import { SplatMesh }     from '@sparkjsdev/spark';
+import { SplatMesh, SplatRenderer } from '@sparkjsdev/spark';
+
+// ── Spark static initialisation — MUST complete before any SplatMesh renders
+await SplatMesh.staticInitialize();
 
 // ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
 // Replace with your Supabase Storage public URL after uploading your .spz
@@ -367,6 +370,9 @@ const canvas   = document.getElementById('sceneCanvas');
 const panel    = document.getElementById('scenePanel');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Spark needs its own renderer wrapper to sort and render splats correctly
+const splatRenderer = new SplatRenderer(renderer);
 
 const scene  = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1f14);
@@ -424,7 +430,12 @@ function resize() {
 }
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
-renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
+renderer.setAnimationLoop((time) => {
+  applyWASD();
+  controls.update();
+  // SplatRenderer.render handles both normal Three.js objects and Spark splats
+  splatRenderer.render(scene, camera);
+});
 
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();

@@ -238,12 +238,6 @@
     </div>
     <div class="coord-display" id="coordDisplay"></div>
 
-    <!-- DEBUG PANEL — remove once working -->
-    <div id="debugPanel" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);color:#6db85c;font-family:monospace;font-size:12px;padding:16px 20px;border-radius:8px;border:1px solid #6db85c;max-width:500px;width:90%;z-index:20;display:none;">
-      <div style="font-weight:bold;margin-bottom:8px;color:#fff;">Debug log</div>
-      <div id="debugLog" style="line-height:1.8;"></div>
-    </div>
-
     <!-- Bottom sheet -->
     <div class="bottom-sheet" id="sheet">
       <div class="sheet-handle"></div>
@@ -331,12 +325,16 @@ splat.onLoad = () => {
   </div>
 </div>
 
-<!-- debug build — testing SPZ loading step by step -->
+<!-- ─────────────────────────────────────────────────────────────────────────
+     IMPORTANT: Spark 2.0 requires Three.js r180.
+     Replace YOUR_SPZ_URL below with your Supabase public URL.
+──────────────────────────────────────────────────────────────────────────── -->
 <script type="importmap">
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/",
+    "@mkkellogg/gaussian-splats-3d": "https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.9/build/gaussian-splats-3d.module.js"
   }
 }
 </script>
@@ -346,458 +344,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-
-const MY_SPZ_URL = 'https://bvhvuxtmdjqxjbexltmv.supabase.co/storage/v1/object/public/scenes_0/Park_Statue_and_Gravel_Path.spz';
-
-// ── Debug logger ──────────────────────────────────────────────────────────
-const debugPanel = document.getElementById('debugPanel');
-const debugLog   = document.getElementById('debugLog');
-function log(msg, color) {
-  debugPanel.style.display = 'block';
-  const line = document.createElement('div');
-  line.style.color = color || '#6db85c';
-  line.textContent = '› ' + msg;
-  debugLog.appendChild(line);
-  console.log(msg);
-}
-function logErr(msg) { log('ERROR: ' + msg, '#c04a1e'); }
-
-log('Three.js loaded: ' + THREE.REVISION);
-
-// ── Colours ───────────────────────────────────────────────────────────────
-const VALUE_CSS = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
-const VALUE_HEX = { recreational:0x1a3d6e, aesthetic:0x2d5a1b, wildlife:0xa06010, avoidance:0xc04a1e };
-
-const pins = [];
-let selectedVal   = null;
-let pendingPos    = new THREE.Vector3();
-let sceneLoadTime = Date.now();
-let sceneFormat   = null;
-let proxyMesh     = null;
-let gs3dViewer    = null;
-
-// ── Three.js setup ────────────────────────────────────────────────────────
-const canvas   = document.getElementById('sceneCanvas');
-const panel    = document.getElementById('scenePanel');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-log('WebGL renderer created');
-
-const scene  = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1f14);
-const camera = new THREE.PerspectiveCamera(60, 1, 0.001, 1000);
-camera.position.set(0, 1, 4);
-
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.panSpeed      = 0.8;
-controls.rotateSpeed   = 0.6;
-controls.zoomSpeed     = 1.2;
-controls.mouseButtons  = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-scene.add(new THREE.DirectionalLight(0xffffff, 0.4));
-
-function resize() {
-  const w = panel.clientWidth, h = panel.clientHeight;
-  if (!w || !h) return;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-}
-new ResizeObserver(resize).observe(panel);
-requestAnimationFrame(resize);
-
-// ── WASD ──────────────────────────────────────────────────────────────────
-const keys = {};
-document.addEventListener('keydown', e => {
-  if (document.activeElement.tagName === 'INPUT') return;
-  keys[e.code] = true;
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
-});
-document.addEventListener('keyup', e => { keys[e.code] = false; });
-const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _up = new THREE.Vector3(0,1,0);
-const SPEED = 0.04;
-function applyWASD() {
-  const moving = keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||keys['KeyE']||keys['KeyQ']||
-                 keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight'];
-  if (!moving) return;
-  camera.getWorldDirection(_fwd); _fwd.y = 0; _fwd.normalize();
-  _rgt.crossVectors(_fwd, _up).normalize();
-  const fw = (keys['KeyW']||keys['ArrowUp'])    ?  SPEED : (keys['KeyS']||keys['ArrowDown'])  ? -SPEED : 0;
-  const rt = (keys['KeyD']||keys['ArrowRight']) ?  SPEED : (keys['KeyA']||keys['ArrowLeft'])  ? -SPEED : 0;
-  camera.position.addScaledVector(_fwd, fw);
-  camera.position.addScaledVector(_rgt, rt);
-  camera.position.y += (keys['KeyE'] ? SPEED : keys['KeyQ'] ? -SPEED : 0);
-  controls.target.addScaledVector(_fwd, fw);
-  controls.target.addScaledVector(_rgt, rt);
-}
-
-renderer.setAnimationLoop(() => {
-  applyWASD();
-  controls.update();
-  if (gs3dViewer) gs3dViewer.update();
-  renderer.render(scene, camera);
-});
-
-log('Render loop started');
-
-// ── Raycasting ────────────────────────────────────────────────────────────
-const raycaster = new THREE.Raycaster();
-raycaster.params.Points = { threshold: 0.05 };
-const pointer = new THREE.Vector2();
-function getHit(clientX, clientY) {
-  if (!proxyMesh) return null;
-  const rect = canvas.getBoundingClientRect();
-  pointer.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
-  pointer.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
-  raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObject(proxyMesh, true);
-  return hits.length ? hits[0] : null;
-}
-let dragDist = 0, mouseDownX = 0, mouseDownY = 0;
-canvas.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; dragDist = 0; });
-canvas.addEventListener('mousemove', e => {
-  dragDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
-  const hit = getHit(e.clientX, e.clientY);
-  document.getElementById('coordDisplay').textContent = hit
-    ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}` : '';
-});
-canvas.addEventListener('click', e => {
-  if (dragDist > 5) return;
-  const hit = getHit(e.clientX, e.clientY);
-  if (hit) { pendingPos.copy(hit.point); openSheet(); }
-});
-let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener('touchstart', e => {
-  if (e.touches.length === 1) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
-}, { passive: true });
-canvas.addEventListener('touchend', e => {
-  if (e.changedTouches.length !== 1) return;
-  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
-  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-  if (dx < 10 && dy < 10) {
-    const hit = getHit(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    if (hit) { pendingPos.copy(hit.point); openSheet(); }
-  }
-}, { passive: true });
-
-// ── Scene picker ──────────────────────────────────────────────────────────
-function clearScene() {
-  if (gs3dViewer) { try { gs3dViewer.dispose(); } catch(_){} gs3dViewer = null; }
-  const toRemove = [];
-  scene.traverse(obj => {
-    if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
-      toRemove.push(obj);
-  });
-  toRemove.forEach(obj => scene.remove(obj));
-  proxyMesh = null;
-}
-
-window.showPicker = function() {
-  clearScene();
-  document.getElementById('scenePicker').style.display = 'flex';
-  document.getElementById('dropZone').classList.remove('visible');
-  document.getElementById('sceneHud').style.display = 'none';
-  document.getElementById('formatBadge').textContent = 'no scene loaded';
-  document.getElementById('formatBadge').className = 'badge badge-none';
-  document.getElementById('headerMeta').textContent = 'select a scene to begin';
-  debugLog.innerHTML = '';
-};
-window.pickDemo  = function() { document.getElementById('scenePicker').style.display = 'none'; loadGLB('tuscan.glb'); };
-window.pickSPZ   = function() { document.getElementById('scenePicker').style.display = 'none'; loadSPZ(MY_SPZ_URL); };
-window.pickUpload= function() { document.getElementById('scenePicker').style.display = 'none'; document.getElementById('dropZone').classList.add('visible'); };
-
-// ── PLY loader ────────────────────────────────────────────────────────────
-function loadPLY(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('parsing .ply…', 'PLY · point cloud'); setProgress(10);
-  new PLYLoader().load(url,
-    (geo) => {
-      geo.computeBoundingBox(); geo.center();
-      const mat = new THREE.PointsMaterial({ size: 0.006, vertexColors: geo.hasAttribute('color'),
-        color: geo.hasAttribute('color') ? 0xffffff : 0x7ab860, sizeAttenuation: true });
-      scene.add(new THREE.Points(geo, mat));
-      proxyMesh = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.02, visible: false }));
-      scene.add(proxyMesh);
-      frameCameraToScene(geo.boundingBox);
-      setProgress(100); sceneFormat = 'ply'; sceneLoadTime = Date.now();
-      onSceneReady(fileName, 'PLY · point cloud');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    },
-    (xhr) => { if (xhr.total) setProgress(10 + (xhr.loaded / xhr.total) * 60); },
-    (err) => { console.error(err); showError('Could not load .ply'); }
-  );
-}
-
-// ── SPZ loader — GaussianSplats3D ─────────────────────────────────────────
-async function loadSPZ(source) {
-  const url      = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading splat…', 'SPZ · Gaussian Splatting');
-  setProgress(10);
-  log('Starting SPZ load: ' + url.substring(0, 60) + '…');
-
-  // Step 1: Test if URL is reachable
-  try {
-    const probe = await fetch(url, { method: 'HEAD' });
-    log('URL fetch status: ' + probe.status + ' ' + probe.statusText,
-        probe.ok ? '#6db85c' : '#c04a1e');
-    if (!probe.ok) {
-      logErr('File not accessible — check Supabase bucket is public');
-      showError('File not accessible (HTTP ' + probe.status + ')');
-      return;
-    }
-  } catch (e) {
-    logErr('Fetch failed: ' + e.message + ' (CORS?)');
-    showError('CORS error — see debug panel');
-    return;
-  }
-
-  setProgress(20);
-  log('File is accessible, loading GaussianSplats3D library…');
-
-  // Step 2: Load GS3D
-  let GS3D;
-  try {
-    GS3D = await import(
-      'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.9/build/gaussian-splats-3d.module.js'
-    );
-    log('GaussianSplats3D loaded OK');
-  } catch (e) {
-    logErr('Failed to load GS3D library: ' + e.message);
-    showError('Could not load GS3D library');
-    return;
-  }
-
-  setProgress(35);
-  log('Creating viewer…');
-
-  // Step 3: Create viewer and load scene
-  try {
-    if (gs3dViewer) { try { gs3dViewer.dispose(); } catch(_){} gs3dViewer = null; }
-
-    gs3dViewer = new GS3D.Viewer({
-      canvas,
-      renderer,
-      camera,
-      selfDrivenMode:       false,
-      useBuiltInControls:   false,
-      ignoreDevicePixelRatio: false,
-      gpuAcceleratedSort:   true,
-      sharedMemoryForWorkers: false,
-    });
-    log('Viewer created, adding scene…');
-    setProgress(40);
-
-    await gs3dViewer.addSplatScene(url, {
-      progressiveLoad: true,
-      onProgress: (pct) => {
-        setProgress(40 + pct * 0.55);
-        if (pct % 25 === 0) log('Loading: ' + pct + '%');
-      },
-    });
-
-    log('Scene loaded successfully!', '#ffffff');
-    setProgress(100);
-
-    proxyMesh = gs3dViewer.splatMesh;
-    sceneFormat   = 'spz';
-    sceneLoadTime = Date.now();
-    onSceneReady(fileName, 'SPZ · GaussianSplats3D');
-    if (source instanceof File) URL.revokeObjectURL(url);
-
-  } catch (e) {
-    logErr('Viewer/scene error: ' + e.message);
-    console.error(e);
-    showError('Scene load failed — see debug panel');
-  }
-}
-
-// ── SPLAT loader ──────────────────────────────────────────────────────────
-async function loadSplat(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading .splat…', 'SPLAT · Gaussian Splatting'); setProgress(15);
-  try {
-    const { LumaSplatsThree } = await import('https://cdn.jsdelivr.net/npm/@lumaai/luma-web@0.2.0/dist/library/luma-web.module.js');
-    setProgress(40);
-    const splat = new LumaSplatsThree({ source: url });
-    scene.add(splat);
-    splat.addEventListener('load', () => {
-      setProgress(100); sceneFormat = 'splat'; sceneLoadTime = Date.now();
-      proxyMesh = splat;
-      onSceneReady(fileName, 'SPLAT · Gaussian Splatting');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    });
-  } catch (err) { showError('Could not load .splat'); }
-}
-
-// ── GLB loader ────────────────────────────────────────────────────────────
-function loadGLB(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading .glb mesh…', 'GLB · 3D mesh'); setProgress(10);
-  new GLTFLoader().load(url,
-    (gltf) => {
-      const box = new THREE.Box3().setFromObject(gltf.scene);
-      const center = new THREE.Vector3(); box.getCenter(center);
-      gltf.scene.position.sub(center);
-      gltf.scene.traverse(child => {
-        if (child.isMesh && !child.material)
-          child.material = new THREE.MeshStandardMaterial({ color: 0x88aa66, roughness: 0.8 });
-      });
-      scene.add(gltf.scene); proxyMesh = gltf.scene;
-      frameCameraToScene(new THREE.Box3().setFromObject(gltf.scene));
-      setProgress(100); sceneFormat = 'glb'; sceneLoadTime = Date.now();
-      onSceneReady(fileName, 'GLB · 3D mesh');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    },
-    (xhr) => { if (xhr.total) setProgress(10 + (xhr.loaded / xhr.total) * 65); },
-    (err) => { showError('Could not load .glb'); }
-  );
-}
-
-// ── Camera framing ────────────────────────────────────────────────────────
-function frameCameraToScene(bbox) {
-  if (!bbox) return;
-  const size = new THREE.Vector3(), center = new THREE.Vector3();
-  bbox.getSize(size); bbox.getCenter(center);
-  const dist = Math.abs(Math.max(size.x, size.y, size.z) / Math.sin(camera.fov * Math.PI / 360)) * 0.65;
-  camera.position.set(center.x, center.y + size.y * 0.25, center.z + dist);
-  camera.lookAt(center); controls.target.copy(center); controls.update();
-}
-
-// ── UI helpers ────────────────────────────────────────────────────────────
-function showLoading(label, fmt) {
-  document.getElementById('scenePicker').style.display = 'none';
-  document.getElementById('dropZone').classList.remove('visible');
-  document.getElementById('loadingOverlay').classList.remove('hidden');
-  document.getElementById('loadingLabel').textContent  = label;
-  document.getElementById('loadingFormat').textContent = fmt;
-}
-function setProgress(p) { document.getElementById('loadingBar').style.width = p + '%'; }
-function showError(msg) {
-  document.getElementById('loadingLabel').textContent = '⚠ ' + msg;
-  document.getElementById('loadingBar').style.background = '#c04a1e';
-}
-function onSceneReady(fileName, fmtLabel) {
-  document.getElementById('loadingOverlay').classList.add('hidden');
-  document.getElementById('sceneHud').style.display = 'flex';
-  document.getElementById('hudLabel').textContent = fileName;
-  document.getElementById('formatBadge').textContent = fmtLabel;
-  const badgeClass = { ply:'badge-ply', splat:'badge-3d', spz:'badge-spz', glb:'badge-glb' };
-  document.getElementById('formatBadge').className = 'badge ' + (badgeClass[sceneFormat] || 'badge-none');
-  document.getElementById('headerMeta').textContent = 'prototype v0.1';
-}
-
-// ── File drop ─────────────────────────────────────────────────────────────
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('dragover');
-  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
-});
-document.getElementById('fileInput').addEventListener('change', e => {
-  if (e.target.files[0]) handleFile(e.target.files[0]);
-});
-function handleFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'ply')   { loadPLY(file);   return; }
-  if (ext === 'spz')   { loadSPZ(file);   return; }
-  if (ext === 'splat') { loadSplat(file); return; }
-  if (ext === 'glb')   { loadGLB(file);   return; }
-  alert('Unsupported format.');
-}
-const sceneParam = new URLSearchParams(window.location.search).get('scene');
-if (sceneParam) {
-  const ext = sceneParam.split('.').pop().toLowerCase();
-  if (ext === 'ply')   loadPLY(sceneParam);
-  if (ext === 'spz')   loadSPZ(sceneParam);
-  if (ext === 'splat') loadSplat(sceneParam);
-  if (ext === 'glb')   loadGLB(sceneParam);
-}
-
-// ── Pin marker ────────────────────────────────────────────────────────────
-function dropPin3D(pos, valueType) {
-  const col = VALUE_HEX[valueType];
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), new THREE.MeshBasicMaterial({ color: col }));
-  ball.position.copy(pos); scene.add(ball);
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.1, 6), new THREE.MeshBasicMaterial({ color: col }));
-  stem.position.set(pos.x, pos.y + 0.05, pos.z); scene.add(stem);
-}
-
-// ── Exposed functions ─────────────────────────────────────────────────────
-window.openSheet = function() {
-  selectedVal = null;
-  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
-  document.getElementById('noteInput').value = '';
-  document.getElementById('sheet').classList.add('open');
-};
-window.closeSheet = function() { document.getElementById('sheet').classList.remove('open'); };
-window.selectVal  = function(btn) {
-  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel'); selectedVal = btn.dataset.val;
-};
-window.savePin = function() {
-  if (!selectedVal) { alert('Please select a value type first.'); return; }
-  const note = document.getElementById('noteInput').value.trim();
-  const pin = {
-    valueType: selectedVal, note,
-    scene_x: pendingPos.x.toFixed(3), scene_y: pendingPos.y.toFixed(3), scene_z: pendingPos.z.toFixed(3),
-    format: sceneFormat, dwell_ms: Date.now() - sceneLoadTime,
-    ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-  };
-  pins.push(pin); dropPin3D(pendingPos, selectedVal);
-  closeSheet(); renderPins(); updateStats();
-};
-window.switchTab = function(name, btn) {
-  ['pins','code','schema'].forEach(t => document.getElementById('tab-'+t).style.display = t===name?'block':'none');
-  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-};
-window.toggleBio = function() {
-  const btn = document.getElementById('bioBtn');
-  btn.textContent = btn.textContent.includes('off') ? 'bio overlay: on' : 'bio overlay: off';
-  btn.className = btn.textContent.includes('on') ? 'ot-btn on' : 'ot-btn';
-};
-window.toggleCanopy = function() {
-  const btn = document.getElementById('canopyBtn');
-  btn.textContent = btn.textContent.includes('off') ? 'canopy layer: on' : 'canopy layer: off';
-  btn.className = btn.textContent.includes('on') ? 'ot-btn on2' : 'ot-btn';
-};
-
-function renderPins() {
-  const container = document.getElementById('tab-pins');
-  document.getElementById('pinEmpty')?.remove();
-  container.querySelectorAll('.pin-card').forEach(el => el.remove());
-  [...pins].reverse().forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'pin-card';
-    card.innerHTML = `
-      <div class="pin-header">
-        <div class="pin-dot" style="background:${VALUE_CSS[p.valueType]}"></div>
-        <div class="pin-type">${p.valueType}</div>
-        <div class="pin-ts">${p.ts}</div>
-      </div>
-      ${p.note ? `<div class="pin-note">${p.note}</div>` : ''}
-      <div class="pin-coords">(${p.scene_x}, ${p.scene_y}, ${p.scene_z}) · ${p.format} · ${(p.dwell_ms/1000).toFixed(1)}s</div>
-    `;
-    container.prepend(card);
-  });
-}
-function updateStats() {
-  document.getElementById('statTotal').textContent    = pins.length;
-  document.getElementById('statWildlife').textContent = pins.filter(p => p.valueType==='wildlife').length;
-  const avg = pins.length ? (pins.reduce((s,p)=>s+p.dwell_ms,0)/pins.length/1000).toFixed(1) : '—';
-  document.getElementById('statDwell').textContent = avg;
-}
-</script>
-</body>
-</html>
+import * as GS3D         from '@mkkellogg/gaussian-splats-3d';
 
 // ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
 // Replace with your Supabase Storage public URL after uploading your .spz
@@ -877,7 +424,13 @@ function resize() {
 }
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
-renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
+let gs3dViewer = null;
+renderer.setAnimationLoop(() => {
+  applyWASD();
+  controls.update();
+  if (gs3dViewer) gs3dViewer.update();
+  renderer.render(scene, camera);
+});
 
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
@@ -924,7 +477,7 @@ canvas.addEventListener('touchend', e => {
 
 // ── Scene picker UI ───────────────────────────────────────────────────────
 function clearScene() {
-  // Remove all non-light objects from scene when switching
+  if (gs3dViewer) { try { gs3dViewer.dispose(); } catch(_){} gs3dViewer = null; }
   const toRemove = [];
   scene.traverse(obj => {
     if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
@@ -991,45 +544,56 @@ function loadPLY(source) {
   );
 }
 
-// ── SPZ loader — Spark 2.0 ────────────────────────────────────────────────
-// onLoad must be a constructor option (not a property set afterwards).
-// SplatMesh also exposes `initialized` promise as a reliable fallback.
-function loadSPZ(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
+// ── SPZ / SPLAT loader — GaussianSplats3D (statically imported) ───────────
+async function loadSPZ(source) {
+  const url      = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading via Spark 2.0…', 'SPZ · Gaussian Splatting');
-  setProgress(15);
-  let done = false;
-
-  function onReady(mesh) {
-    if (done) return;
-    done = true;
-    setProgress(100);
-    sceneFormat   = 'spz';
-    sceneLoadTime = Date.now();
-    proxyMesh     = mesh;
-    try { const bbox = mesh.getBoundingBox(); if (bbox) frameCameraToScene(bbox); } catch (_) {}
-    onSceneReady(fileName, 'SPZ · Spark 2.0');
-    if (source instanceof File) URL.revokeObjectURL(url);
-  }
+  showLoading('loading splat…', 'SPZ · GaussianSplats3D');
+  setProgress(10);
 
   try {
-    const splatMesh = new SplatMesh({
-      url,
-      onProgress: (e) => { if (e.total) setProgress(15 + (e.loaded / e.total) * 75); },
-      onLoad: (mesh) => onReady(mesh),
-    });
-    scene.add(splatMesh);
-    setProgress(20);
+    if (gs3dViewer) { try { gs3dViewer.dispose(); } catch(_){} gs3dViewer = null; }
 
-    // Fallback: initialized promise fires when splat is fully parsed
-    splatMesh.initialized
-      .then(() => onReady(splatMesh))
-      .catch(err => { console.error(err); showError('Could not load .spz — check the URL.'); });
+    gs3dViewer = new GS3D.Viewer({
+      canvas,
+      renderer,
+      camera,
+      selfDrivenMode:         false,
+      useBuiltInControls:     false,
+      ignoreDevicePixelRatio: false,
+      gpuAcceleratedSort:     true,
+      sharedMemoryForWorkers: false,
+    });
+
+    setProgress(30);
+
+    await gs3dViewer.addSplatScene(url, {
+      progressiveLoad: true,
+      onProgress: (pct) => setProgress(30 + pct * 0.65),
+    });
+
+    setProgress(100);
+    proxyMesh     = gs3dViewer.splatMesh;
+    sceneFormat   = 'spz';
+    sceneLoadTime = Date.now();
+
+    // Frame camera to scene centre
+    try {
+      const center = new THREE.Vector3();
+      gs3dViewer.splatMesh.getCenter(center);
+      camera.position.set(center.x, center.y + 1, center.z + 4);
+      camera.lookAt(center);
+      controls.target.copy(center);
+      controls.update();
+    } catch(_) {}
+
+    onSceneReady(fileName, 'SPZ · GaussianSplats3D');
+    if (source instanceof File) URL.revokeObjectURL(url);
 
   } catch (err) {
-    console.error(err);
-    showError('Could not load .spz — check the URL and try again.');
+    console.error('SPZ load error:', err);
+    showError('Could not load splat — ' + err.message);
+    if (source instanceof File) URL.revokeObjectURL(url);
   }
 }
 

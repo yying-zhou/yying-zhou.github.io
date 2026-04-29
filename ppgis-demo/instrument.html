@@ -332,9 +332,8 @@ splat.onLoad = () => {
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
-    "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.0.0/spark.module.js"
+    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
   }
 }
 </script>
@@ -344,7 +343,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-import { SplatMesh }     from '@sparkjsdev/spark';
 
 // ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
 // Replace with your Supabase Storage public URL after uploading your .spz
@@ -424,7 +422,13 @@ function resize() {
 }
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
-renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
+renderer.setAnimationLoop(() => {
+  applyWASD();
+  controls.update();
+  // GaussianSplats3D needs its own update call for sorting
+  if (gs3dViewer) gs3dViewer.update();
+  renderer.render(scene, camera);
+});
 
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
@@ -471,7 +475,12 @@ canvas.addEventListener('touchend', e => {
 
 // ── Scene picker UI ───────────────────────────────────────────────────────
 function clearScene() {
-  // Remove all non-light objects from scene when switching
+  // Dispose GaussianSplats3D viewer if active
+  if (gs3dViewer) {
+    gs3dViewer.dispose();
+    gs3dViewer = null;
+  }
+  // Remove all non-light objects from scene
   const toRemove = [];
   scene.traverse(obj => {
     if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
@@ -538,30 +547,75 @@ function loadPLY(source) {
   );
 }
 
-// ── SPZ loader — Spark 2.0 ────────────────────────────────────────────────
-// Based exactly on the Spark README: just new SplatMesh({url}), scene.add, renderer.render
-function loadSPZ(source) {
+// ── Gaussian Splat loader — GaussianSplats3D by mkkellogg ─────────────────
+// Handles .spz, .splat, .ksplat, .ply natively. Loaded dynamically so it
+// doesn't block the rest of the page on startup.
+// Docs: https://github.com/mkkellogg/GaussianSplats3D
+let gs3dViewer = null;
+
+async function loadSPZ(source) {
   const url      = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading via Spark 2.0…', 'SPZ · Gaussian Splatting');
-  setProgress(20);
+  showLoading('loading splat via GaussianSplats3D…', 'SPZ · Gaussian Splatting');
+  setProgress(10);
 
-  const splatMesh = new SplatMesh({ url });
-  scene.add(splatMesh);
+  try {
+    // Dynamically import GaussianSplats3D from CDN
+    const GS3D = await import(
+      'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.9/build/gaussian-splats-3d.module.js'
+    );
+    setProgress(30);
 
-  // initialized is a Promise<SplatMesh> that resolves when the splat is ready
-  splatMesh.initialized.then((mesh) => {
+    // Clean up any previous viewer
+    if (gs3dViewer) {
+      gs3dViewer.dispose();
+      gs3dViewer = null;
+    }
+
+    // GaussianSplats3D Viewer manages its own renderer — pass our canvas
+    gs3dViewer = new GS3D.Viewer({
+      canvas,
+      renderer,
+      camera,
+      selfDrivenMode: false,           // we drive the render loop
+      useBuiltInControls: false,       // we use OrbitControls
+      ignoreDevicePixelRatio: false,
+      gpuAcceleratedSort: true,
+      sharedMemoryForWorkers: false,   // safer for cross-origin
+    });
+
+    setProgress(50);
+
+    await gs3dViewer.addSplatScene(url, {
+      progressiveLoad: true,
+      onProgress: (pct) => setProgress(50 + pct * 0.45),
+    });
+
+    setProgress(95);
+
+    // Use the splat scene as proxy for raycasting
+    proxyMesh = gs3dViewer.splatMesh;
+
+    // Frame camera to the loaded scene
+    const center = gs3dViewer.splatMesh.getSplatCenter
+      ? gs3dViewer.splatMesh.getSplatCenter(0)
+      : new THREE.Vector3(0, 0, 0);
+    camera.position.set(center.x, center.y + 1, center.z + 4);
+    camera.lookAt(center);
+    controls.target.copy(center);
+    controls.update();
+
     setProgress(100);
     sceneFormat   = 'spz';
     sceneLoadTime = Date.now();
-    proxyMesh     = mesh;
-    try { const bbox = mesh.getBoundingBox(); if (bbox) frameCameraToScene(bbox); } catch (_) {}
-    onSceneReady(fileName, 'SPZ · Spark 2.0');
+    onSceneReady(fileName, 'SPZ · GaussianSplats3D');
     if (source instanceof File) URL.revokeObjectURL(url);
-  }).catch(err => {
+
+  } catch (err) {
     console.error('SPZ load error:', err);
-    showError('Could not load .spz — check the URL and browser console.');
-  });
+    showError('Could not load splat — see browser console for details.');
+    if (source instanceof File) URL.revokeObjectURL(url);
+  }
 }
 
 // ── SPLAT loader — Luma Web SDK (legacy .splat files) ────────────────────

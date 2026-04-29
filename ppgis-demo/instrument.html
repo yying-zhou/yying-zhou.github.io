@@ -344,10 +344,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-import { SplatMesh, SplatRenderer } from '@sparkjsdev/spark';
+import { SplatMesh } from '@sparkjsdev/spark';
 
-// ── Spark static initialisation — MUST complete before any SplatMesh renders
-await SplatMesh.staticInitialize();
+// Spark static init — runs once in background, does NOT block buttons or UI
+let sparkReady = false;
+SplatMesh.staticInitialize()
+  .then(() => { sparkReady = true; })
+  .catch(err => console.warn('Spark static init failed:', err));
 
 // ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
 // Replace with your Supabase Storage public URL after uploading your .spz
@@ -370,9 +373,6 @@ const canvas   = document.getElementById('sceneCanvas');
 const panel    = document.getElementById('scenePanel');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-// Spark needs its own renderer wrapper to sort and render splats correctly
-const splatRenderer = new SplatRenderer(renderer);
 
 const scene  = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1f14);
@@ -430,12 +430,7 @@ function resize() {
 }
 new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
-renderer.setAnimationLoop((time) => {
-  applyWASD();
-  controls.update();
-  // SplatRenderer.render handles both normal Three.js objects and Spark splats
-  splatRenderer.render(scene, camera);
-});
+renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
 
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
@@ -550,13 +545,26 @@ function loadPLY(source) {
 }
 
 // ── SPZ loader — Spark 2.0 ────────────────────────────────────────────────
-// onLoad must be a constructor option (not a property set afterwards).
-// SplatMesh also exposes `initialized` promise as a reliable fallback.
-function loadSPZ(source) {
+async function loadSPZ(source) {
   const url = source instanceof File ? URL.createObjectURL(source) : source;
   const fileName = source instanceof File ? source.name : source.split('/').pop();
   showLoading('loading via Spark 2.0…', 'SPZ · Gaussian Splatting');
+  setProgress(10);
+
+  // Wait for Spark static init to complete (max 10 seconds)
+  if (!sparkReady) {
+    showLoading('initialising Spark renderer…', 'SPZ · Gaussian Splatting');
+    const timeout = Date.now() + 10000;
+    while (!sparkReady && Date.now() < timeout) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (!sparkReady) {
+      showError('Spark renderer failed to initialise. Try refreshing.');
+      return;
+    }
+  }
   setProgress(15);
+
   let done = false;
 
   function onReady(mesh) {

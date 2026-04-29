@@ -123,40 +123,62 @@
   .btn-save:hover { background: #1e4012; }
   .btn-cancel { padding: 9px 16px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: none; color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; }
 
-  /* Sidebar */
-  .sidebar { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-  .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .stab { flex: 1; padding: 11px 8px; font-size: 12px; font-family: 'DM Mono', monospace; border: none; background: none; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
-  .stab.active { color: var(--text); border-bottom-color: var(--accent); }
-  .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
-  .pin-empty { font-size: 13px; color: var(--text-hint); font-family: 'DM Mono', monospace; padding: 24px 0; line-height: 1.8; }
-  .pin-card { padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
-  .pin-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .pin-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .pin-type { font-size: 12px; font-weight: 500; }
-  .pin-ts { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-hint); margin-left: auto; }
-  .pin-note { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-  .pin-coords { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-hint); }
-  .code-section { margin-bottom: 18px; }
-  .code-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  pre { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.7; overflow-x: auto; color: var(--text); white-space: pre; }
-  .kw { color: var(--accent2); } .str { color: var(--accent); } .cm { color: var(--text-hint); font-style: italic; }
-  .schema-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .schema-table th { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-strong); }
-  .schema-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  .schema-table td:first-child { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent2); }
-  .schema-table td:nth-child(2) { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); }
-  .schema-table td:nth-child(3) { font-size: 11px; color: var(--text-muted); }
-  .schema-note { margin-top: 12px; padding: 10px 12px; background: var(--accent-light); border-radius: var(--radius); font-size: 12px; color: var(--accent); border: 1px solid rgba(45,90,27,0.15); line-height: 1.6; }
-  .stats-bar { display: flex; border-top: 1px solid var(--border); flex-shrink: 0; }
-  .stat { flex: 1; padding: 10px 12px; text-align: center; border-right: 1px solid var(--border); }
-  .stat:last-child { border-right: none; }
-  .stat-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--text); line-height: 1; }
-  .stat-label { font-size: 10px; color: var(--text-hint); margin-top: 3px; }
-  @media (max-width: 700px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr 260px; }
-    .sidebar { border-left: none; border-top: 1px solid var(--border); }
-    .overlay-toggle { display: none; }
+  /* ── Right sidebar ── */
+  .sidebar {
+    background: var(--surface); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sidebar-section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
+  .sidebar h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 12px; color: var(--text); }
+  .sidebar h3 { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-hint); margin-bottom: 8px; }
+
+  .layer-list { display: flex; flex-direction: column; gap: 6px; }
+  .layer-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; transition: all 0.15s;
+  }
+  .layer-item:hover { background: var(--surface2); }
+  .layer-item.active { border-color: var(--accent); background: var(--accent-light); }
+  .layer-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .layer-info { flex: 1; }
+  .layer-name { font-size: 13px; color: var(--text); }
+  .layer-count { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-hint); }
+  .layer-vis { width: 18px; height: 18px; border-radius: 3px; border: 1px solid var(--border-strong); display: grid; place-items: center; cursor: pointer; }
+  .layer-vis svg { width: 12px; height: 12px; stroke: var(--text-muted); }
+  .layer-vis.hidden svg { opacity: 0.3; }
+
+  .anno-list { display: flex; flex-direction: column; gap: 8px; }
+  .anno-item {
+    padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; transition: all 0.15s;
+  }
+  .anno-item:hover { background: var(--surface2); }
+  .anno-item.selected { border-color: var(--accent); background: var(--accent-light); }
+  .anno-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .anno-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .anno-type { font-size: 12px; font-weight: 500; }
+  .anno-coords { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-hint); margin-left: auto; }
+  .anno-note { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn { padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-muted); font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+  .btn:hover { background: var(--surface2); color: var(--text); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #1e4012; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-box { padding: 10px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface2); }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .stat-value { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--text); }
+
+  .empty-state { text-align: center; padding: 24px 12px; color: var(--text-hint); font-size: 13px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+    .sidebar { border-left: none; border-top: 1px solid var(--border); max-height: 280px; }
   }
 </style>
 </head>
@@ -164,669 +186,654 @@
 <div class="app">
   <header>
     <div class="logo">3DGS<span>-PPGIS</span></div>
-    <span class="badge badge-3d">condition: 3D</span>
-    <span class="badge badge-none" id="formatBadge">no scene loaded</span>
-    <div class="header-meta" id="headerMeta">select a scene to begin</div>
+    <span class="badge badge-3d">3DGS Viewer</span>
+    <span id="formatBadge" class="badge badge-none">No file loaded</span>
+    <span id="splatCountBadge" class="badge badge-none">0 splats</span>
+    <div class="header-meta">Spark 2.0 + Three.js r180</div>
   </header>
 
   <div class="scene-panel" id="scenePanel">
-    <canvas id="sceneCanvas"></canvas>
-
-    <!-- ── Scene picker ── -->
+    <!-- Scene picker overlay -->
     <div class="scene-picker" id="scenePicker">
-      <div class="picker-title">choose a scene</div>
+      <div class="picker-title">Select a scene to load</div>
       <div class="picker-cards">
-
-        <!-- Card 1: built-in demo GLB -->
-        <div class="picker-card" onclick="pickDemo()">
-          <div class="picker-card-icon">🏛️</div>
-          <div class="picker-card-title">Tuscan Villa</div>
-          <div class="picker-card-sub">Built-in demo scene.<br>GLB mesh, loads instantly.</div>
-          <div class="picker-card-badge demo">demo · GLB</div>
+        <div class="picker-card" id="cardDemo">
+          <div class="picker-card-icon">🦋</div>
+          <div class="picker-card-title">Demo Butterfly</div>
+          <div class="picker-card-sub">A small SPZ scene (~1.2 MB) to verify the Spark 2.0 pipeline.</div>
+          <span class="picker-card-badge demo">SPZ · DEMO</span>
         </div>
-
-        <!-- Card 2: your SPZ scene -->
-        <div class="picker-card" onclick="pickSPZ()">
-          <div class="picker-card-icon">🌳</div>
-          <div class="picker-card-title">My Scene</div>
-          <div class="picker-card-sub">Your Nerfstudio capture.<br>SPZ · Spark 2.0 renderer.</div>
-          <div class="picker-card-badge spz">research · SPZ</div>
+        <div class="picker-card" id="cardSpz">
+          <div class="picker-card-icon">📦</div>
+          <div class="picker-card-title">Load SPZ / PLY</div>
+          <div class="picker-card-sub">Drop a .spz, .ply, .splat, .ksplat or .sog file. Spark 2.0 supports LoD on-the-fly.</div>
+          <span class="picker-card-badge spz">SPZ / PLY / SPLAT</span>
         </div>
-
-        <!-- Card 3: upload file -->
-        <div class="picker-card" onclick="pickUpload()">
-          <div class="picker-card-icon">📂</div>
-          <div class="picker-card-title">Upload file</div>
-          <div class="picker-card-sub">Drop any scene file.<br>.ply · .splat · .spz · .glb</div>
-          <div class="picker-card-badge file">custom</div>
+        <div class="picker-card" id="cardFile">
+          <div class="picker-card-icon">📁</div>
+          <div class="picker-card-title">Browse server files</div>
+          <div class="picker-card-sub">Select from pre-uploaded scenes on the web server.</div>
+          <span class="picker-card-badge file">SERVER</span>
         </div>
-
       </div>
+      <div class="picker-divider">— or drag & drop a file anywhere —</div>
     </div>
 
-    <!-- Drop zone (shown when upload card is picked) -->
+    <!-- Drop zone -->
     <div class="drop-zone" id="dropZone">
-      <div class="dz-title">drop your scene file here</div>
-      <div class="dz-sub">accepts .ply &nbsp;·&nbsp; .splat &nbsp;·&nbsp; .spz &nbsp;·&nbsp; .glb</div>
+      <div class="dz-title">Drop file here</div>
+      <div class="dz-sub">.spz · .ply · .splat · .ksplat · .sog</div>
       <div class="dz-row">
-        <button class="dz-btn" onclick="document.getElementById('fileInput').click()">browse files</button>
-        <button class="dz-btn-back" onclick="showPicker()">← back</button>
+        <button class="dz-btn" id="dzSelectBtn">Select file</button>
+        <button class="dz-btn-back" id="dzBackBtn">Back</button>
       </div>
-      <input type="file" id="fileInput" accept=".ply,.splat,.spz,.glb" />
     </div>
 
     <!-- Loading overlay -->
     <div class="loading-overlay hidden" id="loadingOverlay">
-      <div class="loading-label"  id="loadingLabel">loading…</div>
+      <div class="loading-label" id="loadingLabel">Loading scene…</div>
+      <div class="loading-format" id="loadingFormat">format: —</div>
       <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
-      <div class="loading-format" id="loadingFormat"></div>
     </div>
 
-    <!-- HUD (shown after scene loads) -->
-    <div class="scene-hud" id="sceneHud" style="display:none">
+    <!-- HUD -->
+    <div class="scene-hud" id="sceneHud" style="display:none;">
       <div class="hud-left">
-        <div class="hud-pill scene"><div class="hud-dot"></div><span id="hudLabel">scene</span></div>
-        <div class="hud-pill hint">click to annotate · drag to orbit · WASD to walk · Q/E up/down</div>
+        <div class="hud-pill scene"><span class="hud-dot"></span><span id="hudSceneName">—</span></div>
+        <div class="hud-pill hint">Left-click + drag to orbit · Right-click to pan · Scroll to zoom · Click to annotate</div>
       </div>
-      <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
-        <button class="hud-change" onclick="showPicker()">⇄ change scene</button>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <button class="hud-change" id="hudChangeScene">Change scene</button>
         <div class="overlay-toggle">
-          <button class="ot-btn" id="bioBtn"    onclick="toggleBio()">bio overlay: off</button>
-          <button class="ot-btn" id="canopyBtn" onclick="toggleCanopy()">canopy layer: off</button>
+          <button class="ot-btn on" id="toggleLod">LoD: ON</button>
+          <button class="ot-btn" id="toggleGrid">Grid: OFF</button>
         </div>
       </div>
     </div>
-    <div class="coord-display" id="coordDisplay"></div>
 
-    <!-- Bottom sheet -->
-    <div class="bottom-sheet" id="sheet">
+    <div class="coord-display" id="coordDisplay" style="display:none;">—</div>
+
+    <!-- Bottom sheet for annotation -->
+    <div class="bottom-sheet" id="bottomSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title">What value does this place have?</div>
+      <div class="sheet-title">Annotate point</div>
       <div class="value-grid">
-        <button class="vbtn" data-val="recreational" onclick="selectVal(this)"><div class="vbtn-dot" style="background:#1a3d6e"></div>Recreational</button>
-        <button class="vbtn" data-val="aesthetic"    onclick="selectVal(this)"><div class="vbtn-dot" style="background:#2d5a1b"></div>Aesthetic</button>
-        <button class="vbtn" data-val="wildlife"     onclick="selectVal(this)"><div class="vbtn-dot" style="background:#a06010"></div>Wildlife habitat</button>
-        <button class="vbtn" data-val="avoidance"    onclick="selectVal(this)"><div class="vbtn-dot" style="background:#c04a1e"></div>Avoidance</button>
+        <button class="vbtn" data-val="recreational"><span class="vbtn-dot" style="background:var(--accent2)"></span>Recreational</button>
+        <button class="vbtn" data-val="aesthetic"><span class="vbtn-dot" style="background:var(--accent)"></span>Aesthetic</button>
+        <button class="vbtn" data-val="wildlife"><span class="vbtn-dot" style="background:var(--amber)"></span>Wildlife</button>
+        <button class="vbtn" data-val="avoidance"><span class="vbtn-dot" style="background:var(--coral)"></span>Avoidance</button>
       </div>
       <div class="note-row">
-        <input class="note-input" id="noteInput" placeholder="Optional note about this place…" />
+        <input type="text" class="note-input" id="noteInput" placeholder="Add a note (optional)…" />
       </div>
       <div class="sheet-actions">
-        <button class="btn-save"   onclick="savePin()">Save annotation</button>
-        <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
+        <button class="btn-save" id="btnSaveAnno">Save annotation</button>
+        <button class="btn-cancel" id="btnCancelAnno">Cancel</button>
       </div>
     </div>
+
+    <!-- Three.js canvas container -->
+    <div id="canvasContainer" style="width:100%;height:100%;"></div>
   </div>
 
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-tabs">
-      <button class="stab active" onclick="switchTab('pins',this)">pins</button>
-      <button class="stab"        onclick="switchTab('code',this)">code</button>
-      <button class="stab"        onclick="switchTab('schema',this)">schema</button>
-    </div>
-    <div class="sidebar-content" id="tab-pins">
-      <div class="pin-empty" id="pinEmpty">no annotations yet.<br>load a scene, then click<br>anywhere to place a pin.</div>
-    </div>
-    <div class="sidebar-content" id="tab-code" style="display:none">
-      <div class="code-section">
-        <div class="code-label">scene picker routing</div>
-        <pre><span class="cm">// demo GLB</span>
-<span class="kw">function</span> pickDemo() { loadGLB(<span class="str">'tuscan.glb'</span>); }
-<span class="cm">// your SPZ via Spark</span>
-<span class="kw">function</span> pickSPZ()  { loadSPZ(<span class="str">'MY_SPZ_URL'</span>); }
-<span class="cm">// file upload</span>
-<span class="kw">function</span> pickUpload() { showDropZone(); }</pre>
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h2>Scene Layers</h2>
+      <div class="layer-list" id="layerList">
+        <div class="layer-item active" data-layer="splats">
+          <div class="layer-swatch" style="background:#6db85c"></div>
+          <div class="layer-info">
+            <div class="layer-name">Gaussian Splats</div>
+            <div class="layer-count" id="layerSplatCount">0 splats</div>
+          </div>
+          <div class="layer-vis"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        </div>
+        <div class="layer-item" data-layer="annotations">
+          <div class="layer-swatch" style="background:#c04a1e"></div>
+          <div class="layer-info">
+            <div class="layer-name">Annotations</div>
+            <div class="layer-count" id="layerAnnoCount">0 points</div>
+          </div>
+          <div class="layer-vis"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        </div>
       </div>
-      <div class="code-section">
-        <div class="code-label">SPZ loader — Spark 2.0</div>
-        <pre><span class="kw">import</span> { SplatMesh }
-  <span class="kw">from</span> <span class="str">'@sparkjsdev/spark'</span>;
+    </div>
 
-<span class="kw">const</span> splat = <span class="kw">new</span> SplatMesh({ url });
-scene.add(splat);
-splat.onLoad = () => {
-  proxyMesh = splat;
-  onSceneReady(...);
-};</pre>
+    <div class="sidebar-section">
+      <h2>Annotations</h2>
+      <div class="anno-list" id="annoList">
+        <div class="empty-state">No annotations yet.<br>Click on the scene to add one.</div>
       </div>
-      <div class="code-section">
-        <div class="code-label">raycast on click</div>
-        <pre>raycaster.setFromCamera(pointer, camera);
-<span class="kw">const</span> hits = raycaster
-  .intersectObject(proxyMesh, <span class="kw">true</span>);
-<span class="kw">if</span> (hits.length) {
-  pendingPos = hits[0].point;
-  openSheet();
-}</pre>
+      <div class="btn-row">
+        <button class="btn" id="btnExport">Export CSV</button>
+        <button class="btn btn-primary" id="btnClear">Clear all</button>
       </div>
     </div>
-    <div class="sidebar-content" id="tab-schema" style="display:none">
-      <table class="schema-table">
-        <thead><tr><th>field</th><th>type</th><th>description</th></tr></thead>
-        <tbody>
-          <tr><td>user_id</td><td>text</td><td>anonymous device hash</td></tr>
-          <tr><td>condition</td><td>text</td><td>'2D' or '3D'</td></tr>
-          <tr><td>value_type</td><td>text</td><td>recreational / aesthetic / wildlife / avoidance</td></tr>
-          <tr><td>note</td><td>text</td><td>free-form annotation</td></tr>
-          <tr><td>scene_x/y/z</td><td>float</td><td>3D hit point from raycast</td></tr>
-          <tr><td>format</td><td>text</td><td>'ply', 'spz', 'splat', or 'glb'</td></tr>
-          <tr><td>dwell_ms</td><td>int</td><td>ms from scene load to first pin</td></tr>
-          <tr><td>ts</td><td>timestamptz</td><td>UTC timestamp</td></tr>
-        </tbody>
-      </table>
-      <div class="schema-note">The <code>format</code> field records which scene type was used, letting you filter pin data by scene in analysis.</div>
+
+    <div class="sidebar-section">
+      <h2>Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">FPS</div>
+          <div class="stat-value" id="statFps">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Splat budget</div>
+          <div class="stat-value" id="statBudget">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Render time</div>
+          <div class="stat-value" id="statRender">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Camera dist</div>
+          <div class="stat-value" id="statCam">—</div>
+        </div>
+      </div>
     </div>
-    <div class="stats-bar">
-      <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">pins</div></div>
-      <div class="stat"><div class="stat-val" id="statWildlife">0</div><div class="stat-label">wildlife</div></div>
-      <div class="stat"><div class="stat-val" id="statDwell">—</div><div class="stat-label">avg dwell (s)</div></div>
-    </div>
-  </div>
+  </aside>
 </div>
 
-<!-- ─────────────────────────────────────────────────────────────────────────
-     IMPORTANT: Spark 2.0 requires Three.js r180.
-     Replace YOUR_SPZ_URL below with your Supabase public URL.
-──────────────────────────────────────────────────────────────────────────── -->
+<!-- Hidden file input -->
+<input type="file" id="fileInput" accept=".spz,.ply,.splat,.ksplat,.sog" />
+
+<!-- Import map for Three.js and Spark 2.0 -->
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js",
+    "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.0.0/spark.module.js"
   }
 }
 </script>
 
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
-import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { SplatMesh, SparkRenderer } from '@sparkjsdev/spark';
+import { OrbitControls } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/examples/jsm/controls/OrbitControls.js';
 
-// ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
-// Replace with your Supabase Storage public URL after uploading your .spz
-const MY_SPZ_URL = 'https://bvhvuxtmdjqxjbexltmv.supabase.co/storage/v1/object/public/scenes_0/Park_Statue_and_Gravel_Path.spz';
-// ─────────────────────────────────────────────────────────────────────────
+/* ── State ── */
+let scene, camera, renderer, controls, sparkRenderer;
+let currentSplatMesh = null;
+let currentFileName = '';
+let annotations = [];
+let nextAnnoId = 1;
+let isLodEnabled = true;
+let isGridVisible = false;
+let gridHelper = null;
+let annotationGroup = null;
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+let pendingAnnoPoint = null;
 
-const VALUE_CSS = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
-const VALUE_HEX = { recreational:0x1a3d6e, aesthetic:0x2d5a1b, wildlife:0xa06010, avoidance:0xc04a1e };
+/* ── DOM refs ── */
+const scenePicker   = document.getElementById('scenePicker');
+const dropZone      = document.getElementById('dropZone');
+const loadingOverlay= document.getElementById('loadingOverlay');
+const loadingLabel  = document.getElementById('loadingLabel');
+const loadingFormat = document.getElementById('loadingFormat');
+const loadingBar    = document.getElementById('loadingBar');
+const sceneHud      = document.getElementById('sceneHud');
+const hudSceneName  = document.getElementById('hudSceneName');
+const coordDisplay  = document.getElementById('coordDisplay');
+const bottomSheet   = document.getElementById('bottomSheet');
+const formatBadge   = document.getElementById('formatBadge');
+const splatCountBadge = document.getElementById('splatCountBadge');
+const layerSplatCount = document.getElementById('layerSplatCount');
+const layerAnnoCount  = document.getElementById('layerAnnoCount');
+const annoList      = document.getElementById('annoList');
+const fileInput     = document.getElementById('fileInput');
+const canvasContainer = document.getElementById('canvasContainer');
 
-const pins = [];
-let selectedVal   = null;
-let pendingPos    = new THREE.Vector3();
-let sceneLoadTime = Date.now();
-let sceneFormat   = null;
-let proxyMesh     = null;
-let showBio       = false;
-let showCanopy    = false;
+/* ── Init Three.js + Spark ── */
+function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1f14);
 
-const canvas   = document.getElementById('sceneCanvas');
-const panel    = document.getElementById('scenePanel');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  camera = new THREE.PerspectiveCamera(60, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+  camera.position.set(0, 0, 3);
 
-const scene  = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1f14);
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  canvasContainer.appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(60, 1, 0.001, 1000);
-camera.position.set(0, 1, 4);
+  // SparkRenderer must be added to scene for LoD support
+  sparkRenderer = new SparkRenderer({ renderer });
+  sparkRenderer.enableLod = true;
+  scene.add(sparkRenderer);
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.panSpeed      = 0.8;
-controls.rotateSpeed   = 0.6;
-controls.zoomSpeed     = 1.2;
-controls.mouseButtons  = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.target.set(0, 0, 0);
 
-// ── WASD ──────────────────────────────────────────────────────────────────
-const keys = {};
-document.addEventListener('keydown', e => {
-  if (document.activeElement.tagName === 'INPUT' ||
-      document.activeElement.tagName === 'TEXTAREA') return;
-  keys[e.code] = true;
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
-});
-document.addEventListener('keyup', e => { keys[e.code] = false; });
+  // Annotation group
+  annotationGroup = new THREE.Group();
+  scene.add(annotationGroup);
 
-const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _up = new THREE.Vector3(0,1,0);
-const SPEED = 0.04;
+  // Grid helper (hidden by default)
+  gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+  gridHelper.visible = false;
+  scene.add(gridHelper);
 
-function applyWASD() {
-  const moving = keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||
-                 keys['KeyE']||keys['KeyQ']||
-                 keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight'];
-  if (!moving) return;
-  camera.getWorldDirection(_fwd); _fwd.y = 0; _fwd.normalize();
-  _rgt.crossVectors(_fwd, _up).normalize();
-  const fw = (keys['KeyW']||keys['ArrowUp'])    ?  SPEED : (keys['KeyS']||keys['ArrowDown'])  ? -SPEED : 0;
-  const rt = (keys['KeyD']||keys['ArrowRight']) ?  SPEED : (keys['KeyA']||keys['ArrowLeft'])  ? -SPEED : 0;
-  const up = keys['KeyE'] ? SPEED : keys['KeyQ'] ? -SPEED : 0;
-  camera.position.addScaledVector(_fwd, fw);
-  camera.position.addScaledVector(_rgt, rt);
-  camera.position.y += up;
-  controls.target.addScaledVector(_fwd, fw);
-  controls.target.addScaledVector(_rgt, rt);
+  // Resize handler
+  window.addEventListener('resize', onResize);
+
+  // Click-to-annotate
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  renderer.domElement.addEventListener('pointermove', onPointerMove);
+
+  animate();
 }
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-scene.add(new THREE.DirectionalLight(0xffffff, 0.4));
-
-function resize() {
-  const w = panel.clientWidth, h = panel.clientHeight;
-  if (!w || !h) return;
-  renderer.setSize(w, h, false);
+function onResize() {
+  if (!camera || !renderer) return;
+  const w = canvasContainer.clientWidth;
+  const h = canvasContainer.clientHeight;
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
 }
-new ResizeObserver(resize).observe(panel);
-requestAnimationFrame(resize);
-renderer.setAnimationLoop(() => {
-  applyWASD();
+
+let lastTime = performance.now();
+let frameCount = 0;
+let fps = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
   controls.update();
-  // GaussianSplats3D needs its own update call for sorting
-  if (gs3dViewer) gs3dViewer.update();
+
+  // FPS counter
+  const now = performance.now();
+  frameCount++;
+  if (now - lastTime >= 1000) {
+    fps = frameCount;
+    frameCount = 0;
+    lastTime = now;
+    document.getElementById('statFps').textContent = fps;
+  }
+
+  // Render via Spark
+  const t0 = performance.now();
   renderer.render(scene, camera);
-});
+  const t1 = performance.now();
+  document.getElementById('statRender').textContent = (t1 - t0).toFixed(1) + ' ms';
 
-// ── Raycasting ────────────────────────────────────────────────────────────
-const raycaster = new THREE.Raycaster();
-raycaster.params.Points = { threshold: 0.05 };
-const pointer = new THREE.Vector2();
+  // Camera distance
+  const dist = camera.position.distanceTo(controls.target);
+  document.getElementById('statCam').textContent = dist.toFixed(2);
 
-function getHit(clientX, clientY) {
-  if (!proxyMesh) return null;
-  const rect = canvas.getBoundingClientRect();
-  pointer.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
-  pointer.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
-  raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObject(proxyMesh, true);
-  return hits.length ? hits[0] : null;
+  // Splat budget
+  if (sparkRenderer) {
+    const budget = sparkRenderer.lodSplatCount || 'auto';
+    document.getElementById('statBudget').textContent = typeof budget === 'number' ? (budget / 1e6).toFixed(1) + 'M' : budget;
+  }
 }
 
-let dragDist = 0, mouseDownX = 0, mouseDownY = 0;
-canvas.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; dragDist = 0; });
-canvas.addEventListener('mousemove', e => {
-  dragDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
-  const hit = getHit(e.clientX, e.clientY);
-  document.getElementById('coordDisplay').textContent = hit
-    ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}` : '';
-});
-canvas.addEventListener('click', e => {
-  if (dragDist > 5) return;
-  const hit = getHit(e.clientX, e.clientY);
-  if (hit) { pendingPos.copy(hit.point); openSheet(); }
-});
+/* ── Loading helpers ── */
+function showLoading(label, format) {
+  loadingOverlay.classList.remove('hidden');
+  loadingLabel.textContent = label;
+  loadingFormat.textContent = format ? 'format: ' + format : '';
+  loadingBar.style.width = '0%';
+  // Simulate progress
+  let p = 0;
+  const interval = setInterval(() => {
+    p += Math.random() * 15;
+    if (p > 90) p = 90;
+    loadingBar.style.width = p + '%';
+  }, 200);
+  loadingOverlay.dataset.interval = interval;
+}
 
-let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener('touchstart', e => {
-  if (e.touches.length === 1) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
-}, { passive: true });
-canvas.addEventListener('touchend', e => {
-  if (e.changedTouches.length !== 1) return;
-  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
-  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-  if (dx < 10 && dy < 10) {
-    const hit = getHit(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    if (hit) { pendingPos.copy(hit.point); openSheet(); }
-  }
-}, { passive: true });
+function hideLoading() {
+  loadingBar.style.width = '100%';
+  clearInterval(parseInt(loadingOverlay.dataset.interval || 0));
+  setTimeout(() => {
+    loadingOverlay.classList.add('hidden');
+    loadingBar.style.width = '0%';
+  }, 400);
+}
 
-// ── Scene picker UI ───────────────────────────────────────────────────────
-function clearScene() {
-  // Dispose GaussianSplats3D viewer if active
-  if (gs3dViewer) {
-    gs3dViewer.dispose();
-    gs3dViewer = null;
+/* ── Loaders ── */
+async function loadDemo() {
+  if (!renderer) initScene();
+  showLoading('Loading demo butterfly…', 'SPZ');
+  try {
+    const url = 'https://sparkjs.dev/assets/splats/butterfly.spz';
+    currentFileName = 'butterfly.spz';
+    await loadSplatUrl(url, 'spz', true);
+  } catch (e) {
+    console.error(e);
+    alert('Failed to load demo: ' + e.message);
+    hideLoading();
   }
-  // Remove all non-light objects from scene
-  const toRemove = [];
-  scene.traverse(obj => {
-    if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
-      toRemove.push(obj);
+}
+
+async function loadSplatUrl(url, format, lod = true) {
+  // Remove previous splats
+  if (currentSplatMesh) {
+    scene.remove(currentSplatMesh);
+    currentSplatMesh.dispose?.();
+    currentSplatMesh = null;
+  }
+
+  const splats = new SplatMesh({ url, lod });
+  // Position slightly back so it's visible
+  splats.position.set(0, 0, 0);
+  scene.add(splats);
+  currentSplatMesh = splats;
+
+  // Wait for initialization
+  if (splats.packedSplats) {
+    await splats.packedSplats.initialized;
+  }
+
+  // Update badges
+  formatBadge.className = 'badge badge-' + (format === 'spz' ? 'spz' : format === 'ply' ? 'ply' : '3d');
+  formatBadge.textContent = format.toUpperCase();
+
+  const count = splats.packedSplats?.numSplats || 0;
+  splatCountBadge.className = 'badge badge-3d';
+  splatCountBadge.textContent = count.toLocaleString() + ' splats';
+  layerSplatCount.textContent = count.toLocaleString() + ' splats';
+
+  // Update HUD
+  hudSceneName.textContent = currentFileName;
+  sceneHud.style.display = 'flex';
+  coordDisplay.style.display = 'block';
+
+  // Hide picker
+  scenePicker.style.display = 'none';
+  dropZone.classList.remove('visible');
+
+  hideLoading();
+}
+
+async function loadFile(file) {
+  if (!renderer) initScene();
+  const ext = file.name.split('.').pop().toLowerCase();
+  const format = ext;
+  currentFileName = file.name;
+  showLoading('Loading ' + file.name + '…', format.toUpperCase());
+
+  try {
+    const url = URL.createObjectURL(file);
+    await loadSplatUrl(url, format, true);
+  } catch (e) {
+    console.error(e);
+    alert('Failed to load file: ' + e.message);
+    hideLoading();
+  }
+}
+
+/* ── Annotation logic ── */
+function onPointerDown(e) {
+  if (e.button !== 0) return; // Only left click
+  // Don't annotate if clicking on UI
+  if (e.target !== renderer.domElement) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // Try to intersect with splats via Spark (approximate with a plane at origin)
+  // Since Spark splats don't have standard geometry for raycasting, we use a heuristic:
+  // project ray to a plane facing the camera at the controls target distance
+  const targetDist = camera.position.distanceTo(controls.target);
+  const plane = new THREE.Plane();
+  const normal = new THREE.Vector3();
+  camera.getWorldDirection(normal);
+  plane.setFromNormalAndCoplanarPoint(normal, controls.target);
+
+  const hit = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, hit);
+
+  if (hit) {
+    pendingAnnoPoint = hit.clone();
+    openBottomSheet();
+  }
+}
+
+function onPointerMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const targetDist = camera.position.distanceTo(controls.target);
+  const plane = new THREE.Plane();
+  const normal = new THREE.Vector3();
+  camera.getWorldDirection(normal);
+  plane.setFromNormalAndCoplanarPoint(normal, controls.target);
+  const hit = new THREE.Vector3();
+  if (raycaster.ray.intersectPlane(plane, hit)) {
+    coordDisplay.textContent = `X:${hit.x.toFixed(2)} Y:${hit.y.toFixed(2)} Z:${hit.z.toFixed(2)}`;
+  }
+}
+
+function openBottomSheet() {
+  bottomSheet.classList.add('open');
+  document.getElementById('noteInput').value = '';
+  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
+}
+
+function closeBottomSheet() {
+  bottomSheet.classList.remove('open');
+  pendingAnnoPoint = null;
+}
+
+function saveAnnotation() {
+  const selected = document.querySelector('.vbtn.sel');
+  if (!selected || !pendingAnnoPoint) return;
+
+  const type = selected.dataset.val;
+  const note = document.getElementById('noteInput').value.trim();
+  const colorMap = {
+    recreational: 0x1a3d6e,
+    aesthetic: 0x2d5a1b,
+    wildlife: 0xa06010,
+    avoidance: 0xc04a1e
+  };
+
+  const anno = {
+    id: nextAnnoId++,
+    type,
+    note,
+    position: pendingAnnoPoint.clone(),
+    color: colorMap[type]
+  };
+  annotations.push(anno);
+
+  // Visual marker
+  const marker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.03, 16, 16),
+    new THREE.MeshBasicMaterial({ color: anno.color })
+  );
+  marker.position.copy(anno.position);
+  marker.userData.annoId = anno.id;
+  annotationGroup.add(marker);
+
+  updateAnnoList();
+  closeBottomSheet();
+}
+
+function updateAnnoList() {
+  layerAnnoCount.textContent = annotations.length + ' points';
+  if (annotations.length === 0) {
+    annoList.innerHTML = '<div class="empty-state">No annotations yet.<br>Click on the scene to add one.</div>';
+    return;
+  }
+  annoList.innerHTML = annotations.map(a => `
+    <div class="anno-item" data-id="${a.id}">
+      <div class="anno-header">
+        <div class="anno-dot" style="background:#${a.color.toString(16).padStart(6,'0')}"></div>
+        <div class="anno-type">${a.type.charAt(0).toUpperCase() + a.type.slice(1)}</div>
+        <div class="anno-coords">${a.position.x.toFixed(2)}, ${a.position.y.toFixed(2)}, ${a.position.z.toFixed(2)}</div>
+      </div>
+      ${a.note ? `<div class="anno-note">${a.note}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Click to fly to annotation
+  annoList.querySelectorAll('.anno-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = parseInt(item.dataset.id);
+      const a = annotations.find(x => x.id === id);
+      if (a) {
+        controls.target.copy(a.position);
+        // Move camera to look at it
+        const offset = camera.position.clone().sub(controls.target).normalize().multiplyScalar(3);
+        camera.position.copy(a.position.clone().add(offset));
+      }
+    });
   });
-  toRemove.forEach(obj => scene.remove(obj));
-  proxyMesh = null;
 }
 
-window.showPicker = function() {
-  clearScene();
-  document.getElementById('scenePicker').style.display = 'flex';
-  document.getElementById('dropZone').classList.remove('visible');
-  document.getElementById('sceneHud').style.display = 'none';
-  document.getElementById('formatBadge').textContent = 'no scene loaded';
-  document.getElementById('formatBadge').className = 'badge badge-none';
-  document.getElementById('headerMeta').textContent = 'select a scene to begin';
-};
-
-window.pickDemo = function() {
-  document.getElementById('scenePicker').style.display = 'none';
-  loadGLB('tuscan.glb');
-};
-
-window.pickSPZ = function() {
-  document.getElementById('scenePicker').style.display = 'none';
-  loadSPZ(MY_SPZ_URL);
-};
-
-window.pickUpload = function() {
-  document.getElementById('scenePicker').style.display = 'none';
-  document.getElementById('dropZone').classList.add('visible');
-};
-
-function showDropZone() {
-  document.getElementById('scenePicker').style.display = 'none';
-  document.getElementById('dropZone').classList.add('visible');
-}
-
-// ── PLY loader ────────────────────────────────────────────────────────────
-function loadPLY(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('parsing .ply…', 'PLY · point cloud');
-  setProgress(10);
-  new PLYLoader().load(url,
-    (geo) => {
-      setProgress(75);
-      geo.computeBoundingBox(); geo.center();
-      const mat = new THREE.PointsMaterial({
-        size: 0.006, vertexColors: geo.hasAttribute('color'),
-        color: geo.hasAttribute('color') ? 0xffffff : 0x7ab860, sizeAttenuation: true,
-      });
-      scene.add(new THREE.Points(geo, mat));
-      proxyMesh = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.02, visible: false }));
-      scene.add(proxyMesh);
-      frameCameraToScene(geo.boundingBox);
-      setProgress(100); sceneFormat = 'ply'; sceneLoadTime = Date.now();
-      onSceneReady(fileName, 'PLY · point cloud');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    },
-    (xhr) => { if (xhr.total) setProgress(10 + (xhr.loaded / xhr.total) * 60); },
-    (err) => { console.error(err); showError('Could not load .ply — check the file is valid.'); }
-  );
-}
-
-// ── Gaussian Splat loader — GaussianSplats3D by mkkellogg ─────────────────
-// Handles .spz, .splat, .ksplat, .ply natively. Loaded dynamically so it
-// doesn't block the rest of the page on startup.
-// Docs: https://github.com/mkkellogg/GaussianSplats3D
-let gs3dViewer = null;
-
-async function loadSPZ(source) {
-  const url      = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading splat via GaussianSplats3D…', 'SPZ · Gaussian Splatting');
-  setProgress(10);
-
-  try {
-    // Dynamically import GaussianSplats3D from CDN
-    const GS3D = await import(
-      'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.9/build/gaussian-splats-3d.module.js'
-    );
-    setProgress(30);
-
-    // Clean up any previous viewer
-    if (gs3dViewer) {
-      gs3dViewer.dispose();
-      gs3dViewer = null;
-    }
-
-    // GaussianSplats3D Viewer manages its own renderer — pass our canvas
-    gs3dViewer = new GS3D.Viewer({
-      canvas,
-      renderer,
-      camera,
-      selfDrivenMode: false,           // we drive the render loop
-      useBuiltInControls: false,       // we use OrbitControls
-      ignoreDevicePixelRatio: false,
-      gpuAcceleratedSort: true,
-      sharedMemoryForWorkers: false,   // safer for cross-origin
-    });
-
-    setProgress(50);
-
-    await gs3dViewer.addSplatScene(url, {
-      progressiveLoad: true,
-      onProgress: (pct) => setProgress(50 + pct * 0.45),
-    });
-
-    setProgress(95);
-
-    // Use the splat scene as proxy for raycasting
-    proxyMesh = gs3dViewer.splatMesh;
-
-    // Frame camera to the loaded scene
-    const center = gs3dViewer.splatMesh.getSplatCenter
-      ? gs3dViewer.splatMesh.getSplatCenter(0)
-      : new THREE.Vector3(0, 0, 0);
-    camera.position.set(center.x, center.y + 1, center.z + 4);
-    camera.lookAt(center);
-    controls.target.copy(center);
-    controls.update();
-
-    setProgress(100);
-    sceneFormat   = 'spz';
-    sceneLoadTime = Date.now();
-    onSceneReady(fileName, 'SPZ · GaussianSplats3D');
-    if (source instanceof File) URL.revokeObjectURL(url);
-
-  } catch (err) {
-    console.error('SPZ load error:', err);
-    showError('Could not load splat — see browser console for details.');
-    if (source instanceof File) URL.revokeObjectURL(url);
+/* ── Event wiring ── */
+document.getElementById('cardDemo').addEventListener('click', loadDemo);
+document.getElementById('cardSpz').addEventListener('click', () => {
+  scenePicker.style.display = 'none';
+  dropZone.classList.add('visible');
+});
+document.getElementById('cardFile').addEventListener('click', () => {
+  fileInput.click();
+});
+document.getElementById('dzSelectBtn').addEventListener('click', () => fileInput.click());
+document.getElementById('dzBackBtn').addEventListener('click', () => {
+  dropZone.classList.remove('visible');
+  scenePicker.style.display = 'flex';
+});
+document.getElementById('hudChangeScene').addEventListener('click', () => {
+  if (currentSplatMesh) {
+    scene.remove(currentSplatMesh);
+    currentSplatMesh.dispose?.();
+    currentSplatMesh = null;
   }
-}
+  annotations.forEach(a => {
+    const m = annotationGroup.children.find(c => c.userData.annoId === a.id);
+    if (m) annotationGroup.remove(m);
+  });
+  annotations = [];
+  updateAnnoList();
+  sceneHud.style.display = 'none';
+  coordDisplay.style.display = 'none';
+  scenePicker.style.display = 'flex';
+  formatBadge.className = 'badge badge-none';
+  formatBadge.textContent = 'No file loaded';
+  splatCountBadge.className = 'badge badge-none';
+  splatCountBadge.textContent = '0 splats';
+  layerSplatCount.textContent = '0 splats';
+});
 
-// ── SPLAT loader — Luma Web SDK (legacy .splat files) ────────────────────
-async function loadSplat(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading .splat…', 'SPLAT · Gaussian Splatting');
-  setProgress(15);
-  try {
-    const { LumaSplatsThree } = await import(
-      'https://cdn.jsdelivr.net/npm/@lumaai/luma-web@0.2.0/dist/library/luma-web.module.js'
-    );
-    setProgress(40);
-    const splat = new LumaSplatsThree({ source: url });
-    scene.add(splat);
-    splat.addEventListener('load', () => {
-      setProgress(100); sceneFormat = 'splat'; sceneLoadTime = Date.now();
-      proxyMesh = splat;
-      onSceneReady(fileName, 'SPLAT · Gaussian Splatting');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    });
-    setProgress(65);
-  } catch (err) { console.error(err); showError('Could not load .splat — check the file and try again.'); }
-}
+fileInput.addEventListener('change', e => {
+  if (e.target.files.length) loadFile(e.target.files[0]);
+});
 
-// ── GLB loader ────────────────────────────────────────────────────────────
-function loadGLB(source) {
-  const url = source instanceof File ? URL.createObjectURL(source) : source;
-  const fileName = source instanceof File ? source.name : source.split('/').pop();
-  showLoading('loading .glb mesh…', 'GLB · 3D mesh');
-  setProgress(10);
-  new GLTFLoader().load(url,
-    (gltf) => {
-      setProgress(80);
-      const box = new THREE.Box3().setFromObject(gltf.scene);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      gltf.scene.position.sub(center);
-      gltf.scene.traverse(child => {
-        if (child.isMesh && !child.material)
-          child.material = new THREE.MeshStandardMaterial({ color: 0x88aa66, roughness: 0.8 });
-      });
-      scene.add(gltf.scene);
-      proxyMesh = gltf.scene;
-      frameCameraToScene(new THREE.Box3().setFromObject(gltf.scene));
-      setProgress(100); sceneFormat = 'glb'; sceneLoadTime = Date.now();
-      onSceneReady(fileName, 'GLB · 3D mesh');
-      if (source instanceof File) URL.revokeObjectURL(url);
-    },
-    (xhr) => { if (xhr.total) setProgress(10 + (xhr.loaded / xhr.total) * 65); },
-    (err) => { console.error(err); showError('Could not load .glb — check the file is valid.'); }
-  );
-}
+// Drag & drop on whole panel
+const panel = document.getElementById('scenePanel');
+panel.addEventListener('dragover', e => { e.preventDefault(); panel.classList.add('dragover'); });
+panel.addEventListener('dragleave', () => panel.classList.remove('dragover'));
+panel.addEventListener('drop', e => {
+  e.preventDefault();
+  panel.classList.remove('dragover');
+  if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+});
 
-// ── Camera framing ────────────────────────────────────────────────────────
-function frameCameraToScene(bbox) {
-  if (!bbox) return;
-  const size = new THREE.Vector3(), center = new THREE.Vector3();
-  bbox.getSize(size); bbox.getCenter(center);
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const dist   = Math.abs(maxDim / Math.sin(camera.fov * Math.PI / 360)) * 0.65;
-  camera.position.set(center.x, center.y + size.y * 0.25, center.z + dist);
-  camera.lookAt(center);
-  controls.target.copy(center);
-  controls.update();
-}
-
-// ── UI helpers ────────────────────────────────────────────────────────────
-function showLoading(label, fmt) {
-  document.getElementById('scenePicker').style.display = 'none';
-  document.getElementById('dropZone').classList.remove('visible');
-  document.getElementById('loadingOverlay').classList.remove('hidden');
-  document.getElementById('loadingLabel').textContent  = label;
-  document.getElementById('loadingFormat').textContent = fmt;
-}
-function setProgress(p) { document.getElementById('loadingBar').style.width = p + '%'; }
-function showError(msg) {
-  document.getElementById('loadingLabel').textContent = '⚠ ' + msg;
-  document.getElementById('loadingBar').style.background = '#c04a1e';
-}
-function onSceneReady(fileName, fmtLabel) {
-  document.getElementById('loadingOverlay').classList.add('hidden');
-  document.getElementById('sceneHud').style.display = 'flex';
-  document.getElementById('hudLabel').textContent = fileName;
-  document.getElementById('formatBadge').textContent = fmtLabel;
-  const badgeClass = { ply:'badge-ply', splat:'badge-3d', spz:'badge-spz', glb:'badge-glb' };
-  document.getElementById('formatBadge').className = 'badge ' + (badgeClass[sceneFormat] || 'badge-none');
-  document.getElementById('headerMeta').textContent = 'prototype v0.1';
-}
-
-// ── File drop / browse ────────────────────────────────────────────────────
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+// Drop zone specific
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('dragover');
-  const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
 });
-document.getElementById('fileInput').addEventListener('change', e => {
-  if (e.target.files[0]) handleFile(e.target.files[0]);
-});
-function handleFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'ply')              { loadPLY(file);   return; }
-  if (ext === 'spz')              { loadSPZ(file);   return; }
-  if (ext === 'splat')            { loadSplat(file); return; }
-  if (ext === 'glb')              { loadGLB(file);   return; }
-  alert('Unsupported format. Please use .ply, .spz, .splat, or .glb');
-}
 
-// URL param override: instrument.html?scene=https://...
-const sceneParam = new URLSearchParams(window.location.search).get('scene');
-if (sceneParam) {
-  const ext = sceneParam.split('.').pop().toLowerCase();
-  if (ext === 'ply')   loadPLY(sceneParam);
-  if (ext === 'spz')   loadSPZ(sceneParam);
-  if (ext === 'splat') loadSplat(sceneParam);
-  if (ext === 'glb')   loadGLB(sceneParam);
-}
-
-// ── Pin 3D marker ─────────────────────────────────────────────────────────
-function dropPin3D(pos, valueType) {
-  const col = VALUE_HEX[valueType];
-  const ball = new THREE.Mesh(
-    new THREE.SphereGeometry(0.03, 8, 8),
-    new THREE.MeshBasicMaterial({ color: col })
-  );
-  ball.position.copy(pos);
-  scene.add(ball);
-  const stem = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.005, 0.005, 0.1, 6),
-    new THREE.MeshBasicMaterial({ color: col })
-  );
-  stem.position.set(pos.x, pos.y + 0.05, pos.z);
-  scene.add(stem);
-}
-
-// ── Exposed functions ─────────────────────────────────────────────────────
-window.openSheet = function() {
-  selectedVal = null;
-  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
-  document.getElementById('noteInput').value = '';
-  document.getElementById('sheet').classList.add('open');
-};
-window.closeSheet = function() { document.getElementById('sheet').classList.remove('open'); };
-window.selectVal = function(btn) {
-  document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel'); selectedVal = btn.dataset.val;
-};
-window.savePin = function() {
-  if (!selectedVal) { alert('Please select a value type first.'); return; }
-  const note  = document.getElementById('noteInput').value.trim();
-  const dwell = Date.now() - sceneLoadTime;
-  const pin = {
-    valueType: selectedVal, note,
-    scene_x: pendingPos.x.toFixed(3),
-    scene_y: pendingPos.y.toFixed(3),
-    scene_z: pendingPos.z.toFixed(3),
-    format: sceneFormat, dwell_ms: dwell,
-    ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-  };
-  pins.push(pin);
-  dropPin3D(pendingPos, selectedVal);
-  closeSheet(); renderPins(); updateStats();
-};
-window.switchTab = function(name, btn) {
-  ['pins','code','schema'].forEach(t =>
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none'
-  );
-  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-};
-window.toggleBio = function() {
-  showBio = !showBio;
-  const btn = document.getElementById('bioBtn');
-  btn.textContent = `bio overlay: ${showBio ? 'on' : 'off'}`;
-  btn.className = `ot-btn${showBio ? ' on' : ''}`;
-};
-window.toggleCanopy = function() {
-  showCanopy = !showCanopy;
-  const btn = document.getElementById('canopyBtn');
-  btn.textContent = `canopy layer: ${showCanopy ? 'on' : 'off'}`;
-  btn.className = `ot-btn${showCanopy ? ' on2' : ''}`;
-};
-
-function renderPins() {
-  const container = document.getElementById('tab-pins');
-  document.getElementById('pinEmpty')?.remove();
-  container.querySelectorAll('.pin-card').forEach(el => el.remove());
-  [...pins].reverse().forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'pin-card';
-    card.innerHTML = `
-      <div class="pin-header">
-        <div class="pin-dot" style="background:${VALUE_CSS[p.valueType]}"></div>
-        <div class="pin-type">${p.valueType}</div>
-        <div class="pin-ts">${p.ts}</div>
-      </div>
-      ${p.note ? `<div class="pin-note">${p.note}</div>` : ''}
-      <div class="pin-coords">(${p.scene_x}, ${p.scene_y}, ${p.scene_z}) · ${p.format} · ${(p.dwell_ms/1000).toFixed(1)}s</div>
-    `;
-    container.prepend(card);
+// Value buttons
+document.querySelectorAll('.vbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vbtn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
   });
-}
-function updateStats() {
-  document.getElementById('statTotal').textContent    = pins.length;
-  document.getElementById('statWildlife').textContent = pins.filter(p => p.valueType === 'wildlife').length;
-  const avg = pins.length
-    ? (pins.reduce((s,p) => s + p.dwell_ms, 0) / pins.length / 1000).toFixed(1) : '—';
-  document.getElementById('statDwell').textContent = avg;
-}
+});
+
+document.getElementById('btnSaveAnno').addEventListener('click', saveAnnotation);
+document.getElementById('btnCancelAnno').addEventListener('click', closeBottomSheet);
+
+// Toggles
+document.getElementById('toggleLod').addEventListener('click', function() {
+  isLodEnabled = !isLodEnabled;
+  if (currentSplatMesh) {
+    currentSplatMesh.enableLod = isLodEnabled;
+  }
+  this.textContent = 'LoD: ' + (isLodEnabled ? 'ON' : 'OFF');
+  this.classList.toggle('on', isLodEnabled);
+});
+
+document.getElementById('toggleGrid').addEventListener('click', function() {
+  isGridVisible = !isGridVisible;
+  if (gridHelper) gridHelper.visible = isGridVisible;
+  this.textContent = 'Grid: ' + (isGridVisible ? 'ON' : 'OFF');
+  this.classList.toggle('on', isGridVisible);
+});
+
+// Export / Clear
+document.getElementById('btnExport').addEventListener('click', () => {
+  if (annotations.length === 0) return alert('No annotations to export.');
+  const csv = [
+    'id,type,x,y,z,note',
+    ...annotations.map(a => `${a.id},${a.type},${a.position.x.toFixed(4)},${a.position.y.toFixed(4)},${a.position.z.toFixed(4)},"${(a.note||'').replace(/"/g,'""')}"`)
+  ].join('
+');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'annotations.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  if (!confirm('Clear all annotations?')) return;
+  annotations = [];
+  while (annotationGroup.children.length > 0) {
+    annotationGroup.remove(annotationGroup.children[0]);
+  }
+  updateAnnoList();
+});
+
+// Layer visibility
+document.querySelectorAll('.layer-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    if (e.target.closest('.layer-vis')) {
+      // Toggle visibility
+      const layer = item.dataset.layer;
+      if (layer === 'splats') {
+        if (currentSplatMesh) currentSplatMesh.visible = !currentSplatMesh.visible;
+      } else if (layer === 'annotations') {
+        annotationGroup.visible = !annotationGroup.visible;
+      }
+      item.querySelector('.layer-vis').classList.toggle('hidden');
+    } else {
+      // Select layer (UI only)
+      document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    }
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeBottomSheet();
+});
+
+/* ── Start ── */
+// Scene picker is shown by default; user selects a scene to init Three.js
 </script>
 </body>
 </html>

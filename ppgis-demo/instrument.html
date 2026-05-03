@@ -397,7 +397,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _up = new THREE.Vector3(0,1,0);
-const SPEED = 0.4;
+const SPEED = 0.2;
 
 function applyWASD() {
   const moving = keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||

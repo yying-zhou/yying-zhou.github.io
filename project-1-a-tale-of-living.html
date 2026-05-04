@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Tale of Living - Yingying Zhou</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;400;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .nav-link {
+            transition: all 0.15s ease;
+            display: inline-block;
+        }
+        
+        .nav-link:hover {
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+
+        .back-to-top {
+            transition: all 0.2s ease;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px);
+            background-color: #111111;
+            color: #F9F7F3;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Narrower centered layout - 800px max */
+        .project-detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-[#F9F7F3]">
+    
+    <!-- Header -->
+    <header class="border-b-4 border-black fixed top-0 left-0 right-0 bg-[#F9F7F3] z-50">
+        <div class="container mx-auto px-6 lg:px-12 py-6 lg:py-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-[#111111] leading-none">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity cursor-pointer">Yingying Zhou</a>
+                </h1>
+                <nav class="flex gap-6 lg:gap-8 text-sm lg:text-base">
+                    <a href="index.html#about" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">About</a>
+                    <a href="projects.html" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Projects</a>
+                    <a href="index.html#research" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Research</a>
+                    <a href="index.html#thesis" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Thesis</a>
+                    <a href="demos.html" class="nav-link active px-3 py-1 text-[#1A1A1A] font-medium">Demo</a>
+                    <a href="index.html#cv" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">CV</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Spacer for fixed header -->
+    <div class="h-20 lg:h-28"></div>
+
+    <!-- Project Detail Content -->
+    <article class="py-16 lg:py-24 px-6 lg:px-12">
+        <div class="project-detail-container">
+            
+            <!-- Project Header -->
+            <header class="text-center mb-12 lg:mb-16">
+                <div class="flex justify-center gap-3 text-sm text-[#4B4B4B] mb-4">
+                    <span class="font-medium">01</span>
+                    <span>·</span>
+                    <span class="font-medium">2020</span>
+                    <span>·</span>
+                    <span>Master's Thesis</span>
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-bold text-[#111111] tracking-tight mb-4">A Tale of Living</h1>
+                <p class="text-base italic text-[#666666]">Habitat / Interior Design</p>
+            </header>
+
+            <!-- Project Introduction -->
+            <section class="mb-12 lg:mb-16">
+                <p class="text-lg lg:text-xl text-[#5A5A5A] leading-relaxed mb-8">
+                    This master thesis explores housing models for digital nomads who frequently move between cities. Rather than focusing on architectural form, it investigates psychological needs—comfort, belonging, and loneliness—and translates them into a minimum viable domestic prototype.
+                </p>
+
+                <div class="space-y-8">
+                    <div class="pl-6 border-l-2 border-black">
+                        <p class="text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
+                        <p class="text-base text-[#5A5A5A] leading-relaxed">
+                            How can mobile living/working environments support comfort and reduce loneliness for digital nomads?
+                        </p>
+                    </div>
+
+                    <div class="pl-6 border-l-2 border-black">
+                        <p class="text-sm font-bold text-[#111111] mb-3">KEY TAKEAWAY</p>
+                        <p class="text-base text-[#5A5A5A] leading-relaxed">
+                            Design can be treated as a testable system: needs → minimal unit → combinatorial rules → evidence.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-2 mt-8">
+                    <span class="text-sm px-3 py-1 border border-black text-[#111111]">Digital nomads</span>
+                    <span class="text-sm px-3 py-1 border border-black text-[#111111]">Domesticity</span>
+                    <span class="text-sm px-3 py-1 border border-black text-[#111111]">Prototype system</span>
+                </div>
+            </section>
+
+            <!-- Project Images -->
+            <section class="space-y-12 lg:space-y-16 mb-16 lg:mb-20">
+                <figure>
+                    <img src="media/projects/a-tale-of-living/01-hero.webp" 
+                         alt="A Tale of Living - Hero Image" 
+                         class="w-full border-2 border-black"
+                         loading="lazy">
+                    <figcaption class="text-sm text-[#666666] text-center mt-4 italic">
+                        Minimum viable domestic prototype
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <img src="media/projects/a-tale-of-living/02-system-diagram.webp" 
+                         alt="System Diagram" 
+                         class="w-full border-2 border-black"
+                         loading="lazy">
+                    <figcaption class="text-sm text-[#666666] text-center mt-4 italic">
+                        Design system diagram
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <img src="media/projects/a-tale-of-living/03-minimum-unit.webp" 
+                         alt="Minimum Unit" 
+                         class="w-full border-2 border-black"
+                         loading="lazy">
+                    <figcaption class="text-sm text-[#666666] text-center mt-4 italic">
+                        Minimum habitable unit
+                    </figcaption>
+                </figure>
+            </section>
+
+            <!-- Back to Top Button -->
+            <footer class="text-center pt-12">
+                <a href="#top" 
+                   class="back-to-top inline-block px-8 py-3 text-sm font-bold border-2 border-black text-[#111111] transition-all">
+                    ↑ BACK TO TOP
+                </a>
+            </footer>
+        </div>
+    </article>
+
+    <!-- Site Footer -->
+    <footer class="bg-[#F9F7F3] border-t-4 border-black">
+        <div class="container mx-auto px-6 lg:px-12 py-16 lg:py-20">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div>
+                    <p class="text-2xl lg:text-3xl font-bold text-[#111111] mb-4">GET IN TOUCH</p>
+                    <p class="text-base text-[#666666]">Available for PhD programs starting Fall 2026</p>
+                </div>
+                <div class="flex flex-col gap-3 text-lg">
+                    <a href="mailto:kaychowing29@gmail.com" class="nav-link px-4 py-2 text-[#1A1A1A] font-medium">Email</a>
+                    <a href="https://scholar.google.com" target="_blank" class="nav-link px-4 py-2 text-[#1A1A1A] font-medium">Google Scholar</a>
+                    <a href="https://github.com/Yying-Zhou" target="_blank" class="nav-link px-4 py-2 text-[#1A1A1A] font-medium">GitHub</a>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t-2 border-black">
+                <p class="text-sm text-[#666666]">© 2026 Yingying Zhou. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -18,26 +18,41 @@
             font-family: 'Tajawal', sans-serif;
         }
         
-        .project-item {
+        .project-card {
             transition: all 0.15s ease;
         }
         
-        .project-item:hover {
+        .project-card:hover {
             background-color: #111111;
+        }
+        
+        .project-card:hover .project-title,
+        .project-card:hover .project-category,
+        .project-card:hover .project-meta,
+        .project-card:hover .project-hook,
+        .project-card:hover .cta-link {
             color: #F9F7F3;
         }
         
-        .project-item:hover .project-number,
-        .project-item:hover .project-title,
-        .project-item:hover .project-desc,
-        .project-item:hover .project-meta,
-        .project-item:hover .project-label,
-        .project-item:hover .tag-badge {
+        .project-card:hover .tag-badge {
             color: #F9F7F3;
-        }
-        
-        .project-item:hover .tag-badge {
             border-color: #F9F7F3;
+        }
+
+        .project-card:hover .cta-link {
+            border-color: #F9F7F3;
+        }
+        
+        .project-image {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover .project-image {
+            opacity: 1;
+            max-height: 2000px;
         }
         
         .nav-link {
@@ -57,18 +72,6 @@
         .footer-link:hover {
             background-color: #111111;
             color: #F9F7F3;
-        }
-        
-        .project-image {
-            opacity: 0;
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .project-item:hover .project-image {
-            opacity: 1;
-            max-height: 2000px;
         }
         
         html {
@@ -109,7 +112,7 @@
     <div class="h-20 lg:h-28"></div>
 
     <!-- About Section -->
-    <section id="about" class="border-b-2 border-black">
+    <section id="about" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
                 <div class="lg:col-span-4">
@@ -127,145 +130,130 @@
         </div>
     </section>
 
-    <!-- Projects Section -->
-    <section id="projects" class="border-b-2 border-black">
+    <!-- Projects Section - SIMPLIFIED & NUMBERS REMOVED -->
+    <section id="projects" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
-            <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight4">SELECTED PROJECTS</h2>
+            <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight mb-16 lg:mb-20">SELECTED PROJECTS</h2>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                
                 <!-- Project 01 -->
-                <div class="project-item border-b border-black lg:border-r border-black p-10 lg:p-16 cursor-pointer">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="project-number text-6xl lg:text-7xl font-bold text-[#111111]">01</div>
-                        <div class="text-right">
-                            <p class="project-meta text-sm font-medium text-[#4B4B4B] mb-1">2020</p>
-                            <p class="project-meta text-sm text-[#666666]">Master's Thesis</p>
-                        </div>
-                    </div>
-                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-3 tracking-tight">A Tale of Living</h3>
-                    <p class="project-meta text-sm text-[#666666] mb-6 italic">Habitat / Interior Design</p>
-                    <p class="project-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
-                        This master thesis explores housing models for digital nomads who frequently move between cities. Rather than focusing on architectural form, it investigates psychological needs—comfort, belonging, and loneliness—and translates them into a minimum viable domestic prototype.
+                <a href="project-1-a-tale-of-living.html" class="project-card border-b border-black lg:border-r border-black p-8 lg:p-12 block">
+                    <!-- Meta line at top -->
+                    <p class="project-meta text-sm text-[#4B4B4B] mb-6">2020 · Master's Thesis</p>
+                    
+                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">A Tale of Living</h3>
+                    <p class="project-category text-sm text-[#666666] mb-6 italic">Habitat / Interior Design</p>
+                    
+                    <p class="project-hook text-base text-[#5A5A5A] leading-relaxed mb-6">
+                        Exploring housing models for digital nomads through psychological needs and minimum viable prototypes.
                     </p>
-                    <div class="mb-6">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">How can mobile living/working environments support comfort and reduce loneliness for digital nomads?</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Digital nomads</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Domesticity</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Prototype system</span>
                     </div>
-                    <div class="mb-8">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">KEY TAKEAWAY</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">Design can be treated as a testable system: needs → minimal unit → combinatorial rules → evidence.</p>
+                    
+                    <div class="cta-link text-sm font-bold text-[#111111] inline-flex items-center gap-2 border-b-2 border-black pb-1">
+                        VIEW PROJECT <span>→</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Digital nomads</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Domesticity</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Prototype system</span>
+                    
+                    <!-- Hover-reveal image -->
+                    <div class="project-image mt-8">
+                        <img src="media/projects/a-tale-of-living/03-minimum-unit.webp" alt="A Tale of Living" class="w-full border-2 border-black">
                     </div>
-                    <div class="project-image mt-8 space-y-6">
-                        <img src="media/projects/a-tale-of-living/03-minimum-unit.webp" alt="Minimum Unit" class="w-full h-auto border-2 border-black">
-                    </div>
-                </div>
+                </a>
 
                 <!-- Project 02 -->
-                <div class="project-item border-b border-black p-10 lg:p-16 cursor-pointer">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="project-number text-6xl lg:text-7xl font-bold text-[#111111]">02</div>
-                        <div class="text-right">
-                            <p class="project-meta text-sm font-medium text-[#4B4B4B] mb-1">2019</p>
-                            <p class="project-meta text-sm text-[#666666]">Landscape Design</p>
-                        </div>
-                    </div>
-                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-3 tracking-tight">Cherry on the Cake</h3>
-                    <p class="project-meta text-sm text-[#666666] mb-6 italic">Urban Design / Urban Regeneration</p>
-                    <p class="project-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
-                        Set on Scalo Farini in Milan—an abandoned rail yard dominated by asphalt, gravel, and rusty tracks—this project proposes an urban transformation through programmatic redistribution. A central building becomes the anchor, while surrounding squares are assigned distinct functions to reintroduce public life and urban greenery.
+                <a href="project-2-cherry.html" class="project-card border-b border-black p-8 lg:p-12 block">
+                    <!-- Meta line at top -->
+                    <p class="project-meta text-sm text-[#4B4B4B] mb-6">2019 · Competition</p>
+                    
+                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">Cherry on the Cake</h3>
+                    <p class="project-category text-sm text-[#666666] mb-6 italic">Urban Design / Urban Regeneration</p>
+                    
+                    <p class="project-hook text-base text-[#5A5A5A] leading-relaxed mb-6">
+                        Urban transformation of Milan's abandoned Scalo Farini rail yard through programmatic redistribution and spatial typologies.
                     </p>
-                    <div class="mb-6">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">How can program distribution and spatial typologies reactivate an abandoned rail yard into a public urban sequence?</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Urban regeneration</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Program distribution</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Public life</span>
                     </div>
-                    <div class="mb-8">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">KEY TAKEAWAY</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">Public life can be designed through sequences: anchor + typologies + program logic.</p>
+                    
+                    <div class="cta-link text-sm font-bold text-[#111111] inline-flex items-center gap-2 border-b-2 border-black pb-1">
+                        VIEW PROJECT <span>→</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Urban regeneration</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Program distribution</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Public life</span>
+                    
+                    <!-- Hover-reveal image -->
+                    <div class="project-image mt-8">
+                        <img src="media/projects/cherry-on-the-cake/01-hero.webp" alt="Cherry on the Cake" class="w-full border-2 border-black">
                     </div>
-                    <div class="project-image mt-8 space-y-6">
-                        <img src="media/projects/cherry-on-the-cake/01-hero.webp" alt="Cherry on the Cake - Hero" class="w-full h-auto border-2 border-black">
-                    </div>
-                </div>
+                </a>
 
                 <!-- Project 03 -->
-                <div class="project-item border-b lg:border-b-0 lg:border-r border-black p-10 lg:p-16 cursor-pointer">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="project-number text-6xl lg:text-7xl font-bold text-[#111111]">03</div>
-                        <div class="text-right">
-                            <p class="project-meta text-sm font-medium text-[#4B4B4B] mb-1">2018</p>
-                            <p class="project-meta text-sm text-[#666666]">Design Project</p>
-                        </div>
-                    </div>
-                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-3 tracking-tight">Abracadabra</h3>
-                    <p class="project-meta text-sm text-[#666666] mb-6 italic">Landscape Design / Under-viaduct Activation</p>
-                    <p class="project-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
-                        Abracadabra activates an under-viaduct area in Corvetto, Milan, where sidewalks are neglected and people move through as mere passersby. Informed by Marc Augé's concept of "non-place" and references such as Kobo Abe's "Box," the project treats public discomfort and safety as design questions.
+                <a href="project-3-abracadabra.html" class="project-card border-b lg:border-b-0 lg:border-r border-black p-8 lg:p-12 block">
+                    <!-- Meta line at top -->
+                    <p class="project-meta text-sm text-[#4B4B4B] mb-6">2018 · Design Project</p>
+                    
+                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">Abracadabra</h3>
+                    <p class="project-category text-sm text-[#666666] mb-6 italic">Landscape Design / Under-viaduct Activation</p>
+                    
+                    <p class="project-hook text-base text-[#5A5A5A] leading-relaxed mb-6">
+                        Transforming neglected under-viaduct "non-places" in Milan into sites of social participation and identity through spatial choreography.
                     </p>
-                    <div class="mb-6">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">How can infrastructural leftovers shift passersby from transit-only roles into social participants with identity and agency?</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Non-place</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Identity</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Activation</span>
                     </div>
-                    <div class="mb-8">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">KEY TAKEAWAY</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">Design can transform "non-places" by choreographing relationships, not only forms.</p>
+                    
+                    <div class="cta-link text-sm font-bold text-[#111111] inline-flex items-center gap-2 border-b-2 border-black pb-1">
+                        VIEW PROJECT <span>→</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Non-place</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Identity</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Activation</span>
+                    
+                    <!-- Hover-reveal image -->
+                    <div class="project-image mt-8">
+                        <img src="media/projects/abracadabra/01-final_rendering.png" alt="Abracadabra" class="w-full border-2 border-black">
                     </div>
-                    <div class="project-image mt-8 space-y-6">
-                        <img src="/media/projects/abracadabra/01-final_rendering.png" alt="Abracadabra - Concept Collage" class="w-full h-auto border-2 border-black">
-                    </div>
-                </div>
+                </a>
 
                 <!-- Project 04 -->
-                <div class="project-item p-10 lg:p-16 cursor-pointer">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="project-number text-6xl lg:text-7xl font-bold text-[#111111]">04</div>
-                        <div class="text-right">
-                            <p class="project-meta text-sm font-medium text-[#4B4B4B] mb-1">2019</p>
-                            <p class="project-meta text-sm text-[#666666]">Design Project</p>
-                        </div>
-                    </div>
-                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-3 tracking-tight">FUN</h3>
-                    <p class="project-meta text-sm text-[#666666] mb-6 italic">Space Service Product & System / Inclusive design</p>
-                    <p class="project-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
-                        FUN addresses the exclusiveness of nightclubs and social venues for people with hearing impairments. The project explores how environmental installations, visual instructions, illusional atmospheres, and protective equipment can transform clubbing spaces into inclusive environments where everyone, regardless of hearing ability, can fully participate in nightlife culture.
+                <a href="project-4-fun.html" class="project-card p-8 lg:p-12 block">
+                    <!-- Meta line at top -->
+                    <p class="project-meta text-sm text-[#4B4B4B] mb-6">2019 · Design Project</p>
+                    
+                    <h3 class="project-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">FUN</h3>
+                    <p class="project-category text-sm text-[#666666] mb-6 italic">Space Service Product & System / Inclusive Design</p>
+                    
+                    <p class="project-hook text-base text-[#5A5A5A] leading-relaxed mb-6">
+                        Multi-sensory design strategies transforming sound-centric nightclub spaces into inclusive environments for people with hearing impairments.
                     </p>
-                    <div class="mb-6">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">DESIGN CHALLENGE</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">How do we make the clubbing space more diverse and provide better experience so that every type of customer (especially people with hearing impairment) can enjoy the free time?</p>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Inclusive Design</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Accessibility</span>
+                        <span class="tag-badge text-xs px-3 py-1 border border-black text-[#111111]">Multi-sensory</span>
                     </div>
-                    <div class="mb-8">
-                        <p class="project-label text-sm font-bold text-[#111111] mb-3">KEY TAKEAWAY</p>
-                        <p class="project-meta text-sm text-[#666666] leading-relaxed">Multi-sensory design strategies can transform sound-centric spaces into inclusive environments where all bodies and abilities have equal agency in social participation.</p>
+                    
+                    <div class="cta-link text-sm font-bold text-[#111111] inline-flex items-center gap-2 border-b-2 border-black pb-1">
+                        VIEW PROJECT <span>→</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mb-8">
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Inclusive Design</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Accessibility</span>
-                        <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Multi-sensory</span>
+                    
+                    <!-- Hover-reveal image -->
+                    <div class="project-image mt-8">
+                        <img src="media/projects/fun-inclusive/03-storyboard.jpg" alt="FUN" class="w-full border-2 border-black">
                     </div>
-                    <div class="project-image mt-8 space-y-6">
-                        <img src="/media/projects/fun-inclusive/1-storyboard.jpg" alt="FUN - Storyboard" class="w-full h-auto border-2 border-black">
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Research Section -->
-    <section id="research" class="border-b-2 border-black">
+    <section id="research" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
                 <div class="lg:col-span-4">
@@ -285,7 +273,7 @@
     </section>
 
     <!-- Thesis Section -->
-    <section id="thesis" class="border-b-2 border-black">
+    <section id="thesis" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <h2 class="text-3xl lg:text-4xl font-bold text-[#111111] tracking-tight mb-16">THESIS</h2>
             
@@ -300,7 +288,7 @@
     </section>
 
     <!-- CV Section -->
-    <section id="cv" class="border-b-2 border-black">
+    <section id="cv" class="border-b-4 border-black">
         <div class="container mx-auto px-6 lg:px-12 py-20 lg:py-32">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
                 <div class="lg:col-span-4">
@@ -315,11 +303,11 @@
                         <div class="space-y-6">
                             <div>
                                 <p class="text-lg text-[#1A1A1A] font-medium">MSc in Interior and Spatial Design</p>
-                                <p class="text-base text-[#666666]">Politecnico di Milano, Milan, Italy, 09/2018--12/2020</p>
+                                <p class="text-base text-[#666666]">Politecnico di Milano, Milan, Italy, 09/2018–12/2020</p>
                             </div>
                             <div>
                                 <p class="text-lg text-[#1A1A1A] font-medium">BSc of Environment Design</p>
-                                <p class="text-base text-[#666666]">The Guangzhou Academy of Fine Arts, Guangzhou, China, 09/2013--07/2017</p>
+                                <p class="text-base text-[#666666]">The Guangzhou Academy of Fine Arts, Guangzhou, China, 09/2013–07/2017</p>
                             </div>
                         </div>
                     </div>
@@ -329,11 +317,11 @@
                         <div class="space-y-6">
                             <div>
                                 <p class="text-lg text-[#1A1A1A] font-medium">Lighting designer</p>
-                                <p class="text-base text-[#666666]">Tungsten Studio, Shenzhen, China, 04/2021--04/2022</p>
+                                <p class="text-base text-[#666666]">Tungsten Studio, Shenzhen, China, 04/2021–04/2022</p>
                             </div>
                             <div>
                                 <p class="text-lg text-[#1A1A1A] font-medium">Assistant landscape designer</p>
-                                <p class="text-base text-[#666666]">Shenzhen Blvd Architecture Consulting, Shenzhen, China, 11/2017--02/2018</p>
+                                <p class="text-base text-[#666666]">Shenzhen Blvd Architecture Consulting, Shenzhen, China, 11/2017–02/2018</p>
                             </div>
                         </div>
                     </div>

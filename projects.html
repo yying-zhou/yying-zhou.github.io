@@ -34,12 +34,12 @@
             color: #F9F7F3;
         }
         
-        .project-card:hover .project-image {
-            opacity: 0.3;
+        .project-image {
+            transition: transform 0.3s ease;
         }
         
-        .project-image {
-            transition: opacity 0.2s ease;
+        .project-card:hover .project-image {
+            transform: scale(1.02);
         }
         
         .nav-link {
@@ -80,7 +80,7 @@
                     <a href="projects.html" class="nav-link px-3 py-1 bg-[#111111] text-[#F9F7F3] font-medium">Projects</a>
                     <a href="index.html#research" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Research</a>
                     <a href="index.html#thesis" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Thesis</a>
-                    <a href="demos.html" class="nav-link active px-3 py-1 text-[#1A1A1A] font-medium">Demo</a>
+                    <a href="demos.html" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">Demo</a>
                     <a href="index.html#cv" class="nav-link px-3 py-1 text-[#1A1A1A] font-medium">CV</a>
                 </nav>
             </div>
@@ -99,69 +99,63 @@
             </div>
             
             <!-- Projects Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-0">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 
                 <!-- Project 01 -->
-                <a href="project-1-a-tale-of-living.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/a-tale-of-living/03-minimum-unit.webp" alt="A Tale of Living" class="project-image w-full h-full object-cover">
+                <a href="project-1-a-tale-of-living.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/a-tale-of-living/03-minimum-unit.webp" alt="A Tale of Living" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">01</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">A Tale of Living</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Habitat / Interior Design</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2020</p>
                 </a>
 
                 <!-- Project 02 -->
-                <a href="project-2-cherry.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/cherry-on-the-cake/01-hero.webp" alt="Cherry on the Cake" class="project-image w-full h-full object-cover">
+                <a href="project-2-cherry.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/cherry-on-the-cake/01-hero.webp" alt="Cherry on the Cake" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">02</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Cherry on the Cake</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Urban Design / Urban Regeneration</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2019</p>
                 </a>
 
                 <!-- Project 03 -->
-                <a href="project-3-abracadabra.html" class="project-card border-b p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/abracadabra/01-final_rendering.png" alt="Abracadabra" class="project-image w-full h-full object-cover">
+                <a href="project-3-abracadabra.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/abracadabra/01-final_rendering.png" alt="Abracadabra" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">03</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Abracadabra</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Landscape + Interior Design / Under-viaduct Activation</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2018</p>
                 </a>
 
                 <!-- Project 04 -->
-                <a href="project-4-fun.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/fun-inclusive/03-storyboard.jpg" alt="FUN;)" class="project-image w-full h-full object-cover">
+                <a href="project-4-fun.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/fun-inclusive/03-storyboard.jpg" alt="FUN" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">04</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">FUN</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Inclusive Design</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2019</p>
                 </a>
 
                 <!-- Project 05 -->
-                <a href="project-5-ghost.html" class="project-card border-b border-r-0 lg:border-r border-black p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/ghost/01-frontpage.png" alt="GHOST" class="project-image w-full h-full object-cover">
+                <a href="project-5-ghost.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/ghost/01-frontpage.png" alt="GHOST" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">05</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">GHOST</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Contest Design</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2019</p>
                 </a>
 
                 <!-- Project 06 -->
-                <a href="project-6-terrace.html" class="project-card border-b lg:border-b-0 p-10 lg:p-12 block">
-                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] border-2 border-black overflow-hidden">
-                        <img src="/media/projects/terrace/01-frontview.png" alt="terrace" class="project-image w-full h-full object-cover">
+                <a href="project-6-terrace.html" class="project-card p-10 lg:p-12 block">
+                    <div class="mb-6 aspect-[4/3] bg-[#E5E5E5] overflow-hidden">
+                        <img src="media/projects/terrace/01-frontview.png" alt="Shenzhen Terraces" class="project-image w-full h-full object-cover">
                     </div>
-                    <div class="project-number text-4xl lg:text-5xl font-bold text-[#111111] mb-4">06</div>
                     <h2 class="project-title text-xl lg:text-2xl font-bold text-[#111111] mb-3 tracking-tight">Shenzhen Terraces</h2>
                     <p class="project-type text-sm text-[#666666] mb-2 italic">Lighting Design</p>
                     <p class="project-year text-sm font-medium text-[#4B4B4B]">2021</p>

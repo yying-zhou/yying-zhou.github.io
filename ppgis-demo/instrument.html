@@ -100,20 +100,14 @@
   .hud-change:hover { background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.8); }
 
   .coord-display { position: absolute; bottom: 14px; left: 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.38); pointer-events: none; }
-
-  /* Drawing overlay SVG — sits on top of canvas */
-  #drawingOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
-  #drawingOverlay.drawing { pointer-events: all; cursor: crosshair; }
-
-  /* Mode toggle pill */
-  .mode-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); pointer-events: all; }
-  .mode-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border: none; cursor: pointer; transition: all 0.15s; }
-  .mode-btn.off { background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.5); }
-  .mode-btn.on  { background: rgba(45,90,27,0.8); color: #b8d8a8; }
-
-  /* Download button */
-  .dl-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.15s; pointer-events: all; }
-  .dl-btn:hover { background: rgba(26,61,110,0.7); color: #a8c0e0; }
+  /* area drawing */
+  #drawSVG { position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
+  #drawSVG.active { pointer-events:all; cursor:crosshair; }
+  .mode-row { display:flex; gap:5px; pointer-events:all; }
+  .mode-btn { font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; transition:all 0.15s; }
+  .mode-btn.off { background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.5); }
+  .mode-btn.on  { background:rgba(45,90,27,0.75); color:#b8d8a8; border-color:rgba(100,200,80,0.3); }
+  .dl-btn { font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.55); cursor:pointer; pointer-events:all; }
 
   /* Bottom sheet */
   .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border-strong); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 20px 20px 24px; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); z-index: 10; }
@@ -185,8 +179,7 @@
 
   <div class="scene-panel" id="scenePanel">
     <canvas id="sceneCanvas"></canvas>
-    <!-- SVG overlay for drawing area selections -->
-    <svg id="drawingOverlay" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="drawSVG" xmlns="http://www.w3.org/2000/svg"></svg>
 
     <!-- ── Scene picker ── -->
     <div class="scene-picker" id="scenePicker">
@@ -242,13 +235,13 @@
     <div class="scene-hud" id="sceneHud" style="display:none">
       <div class="hud-left">
         <div class="hud-pill scene"><div class="hud-dot"></div><span id="hudLabel">scene</span></div>
-        <div class="hud-pill hint" id="hudHint">📍 point: click · drag to orbit · WASD · &nbsp;✏️ area: draw freehand polygon</div>
+        <div class="hud-pill hint">click to annotate · drag to orbit · WASD to walk · Q/E up/down</div>
       </div>
       <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
         <button class="hud-change" onclick="showPicker()">⇄ change scene</button>
-        <div class="mode-toggle">
-          <button class="mode-btn on"  id="modePoint" onclick="setMode('point')">📍 point</button>
-          <button class="mode-btn off" id="modeArea"  onclick="setMode('area')">✏️ area</button>
+        <div class="mode-row">
+          <button class="mode-btn on"  id="modePoint" onclick="setDrawMode('point')">📍 point</button>
+          <button class="mode-btn off" id="modeArea"  onclick="setDrawMode('area')">✏️ area</button>
         </div>
         <button class="dl-btn" onclick="downloadSegMap()">⬇ seg map</button>
         <div class="overlay-toggle">
@@ -262,7 +255,7 @@
     <!-- Bottom sheet -->
     <div class="bottom-sheet" id="sheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title" id="sheetTitle">What value does this place have?</div>
+      <div class="sheet-title">What value does this place have?</div>
       <div class="value-grid">
         <button class="vbtn" data-val="recreational" onclick="selectVal(this)"><div class="vbtn-dot" style="background:#1a3d6e"></div>Recreational</button>
         <button class="vbtn" data-val="aesthetic"    onclick="selectVal(this)"><div class="vbtn-dot" style="background:#2d5a1b"></div>Aesthetic</button>
@@ -340,9 +333,8 @@ splat.onLoad = () => {
     </div>
     <div class="stats-bar">
       <div class="stat"><div class="stat-val" id="statTotal">0</div><div class="stat-label">pins</div></div>
-      <div class="stat"><div class="stat-val" id="statAreas">0</div><div class="stat-label">areas</div></div>
       <div class="stat"><div class="stat-val" id="statWildlife">0</div><div class="stat-label">wildlife</div></div>
-      <div class="stat"><div class="stat-val" id="statDwell">—</div><div class="stat-label">avg dwell</div></div>
+      <div class="stat"><div class="stat-val" id="statDwell">—</div><div class="stat-label">avg dwell (s)</div></div>
     </div>
   </div>
 </div>
@@ -354,8 +346,8 @@ splat.onLoad = () => {
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/",
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
     "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.0.0/spark.module.js"
   }
 }
@@ -366,11 +358,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader }     from 'three/addons/loaders/PLYLoader.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
-import { SplatMesh }     from '@sparkjsdev/spark';
+import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
 
 // ── CONFIGURE YOUR SPZ URL HERE ───────────────────────────────────────────
 // Replace with your Supabase Storage public URL after uploading your .spz
-const MY_SPZ_URL = ''https://bvhvuxtmdjqxjbexltmv.supabase.co/storage/v1/object/public/scenes/gs_Lahti.spz'';
+const MY_SPZ_URL = 'https://bvhvuxtmdjqxjbexltmv.supabase.co/storage/v1/object/public/scenes/gs_Lahti.spz';
 // ─────────────────────────────────────────────────────────────────────────
 
 const VALUE_CSS = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
@@ -393,8 +385,12 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const scene  = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1f14);
 
-const camera = new THREE.PerspectiveCamera(60, 1, 0.001, 1000);
-camera.position.set(0, 1, 4);
+// SparkRenderer required to render SplatMesh objects
+const spark = new SparkRenderer({ renderer });
+scene.add(spark);
+
+const camera = new THREE.PerspectiveCamera(75, 1, 0.01, 1000);
+camera.position.set(0, 0, 3);
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -415,7 +411,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _up = new THREE.Vector3(0,1,0);
-const SPEED = 0.04;
+const SPEED = 0.2;
 
 function applyWASD() {
   const moving = keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||
@@ -448,6 +444,14 @@ new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
 renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
 
+// Expose to area-drawing module (separate script tag)
+window._syncOrbit = (enabled) => { controls.enabled = enabled; };
+window._sceneFormat    = null;
+window._sceneLoadTime  = Date.now();
+// Keep _sceneFormat in sync whenever sceneFormat changes
+Object.defineProperty(window, '_sceneFormat',    { get: () => sceneFormat });
+Object.defineProperty(window, '_sceneLoadTime',  { get: () => sceneLoadTime });
+
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points = { threshold: 0.05 };
@@ -463,168 +467,18 @@ function getHit(clientX, clientY) {
   return hits.length ? hits[0] : null;
 }
 
-// ── Annotation mode ───────────────────────────────────────────────────────
-let annotationMode = 'point'; // 'point' | 'area'
-const areas = []; // stored area annotations
-let drawingPoints = []; // current freehand path in screen coords
-let isDrawing = false;
-let pendingArea = null; // area waiting for value type
-
-const svg = document.getElementById('drawingOverlay');
-
-// Colour map with alpha for fill
-const VALUE_FILL = {
-  recreational: 'rgba(26,61,110,0.25)',
-  aesthetic:    'rgba(45,90,27,0.25)',
-  wildlife:     'rgba(160,96,16,0.25)',
-  avoidance:    'rgba(192,74,30,0.25)'
-};
-
-window.setMode = function(mode) {
-  annotationMode = mode;
-  document.getElementById('modePoint').className = `mode-btn ${mode === 'point' ? 'on' : 'off'}`;
-  document.getElementById('modeArea').className  = `mode-btn ${mode === 'area'  ? 'on' : 'off'}`;
-  svg.className = mode === 'area' ? 'drawing' : '';
-  document.getElementById('hudHint').textContent = mode === 'point'
-    ? '📍 point: click to annotate · drag to orbit · WASD to walk'
-    : '✏️ area: click-drag to draw · release to close polygon · WASD still works';
-  // OrbitControls disabled during area draw so mouse draws instead of orbiting
-  controls.enabled = mode === 'point';
-};
-
-// ── SVG helpers ───────────────────────────────────────────────────────────
-function pointsToD(pts) {
-  if (pts.length < 2) return '';
-  return 'M' + pts.map(p => `${p.x},${p.y}`).join('L') + 'Z';
-}
-
-function renderSVGAreas() {
-  // Remove all path elements (keep defs if any)
-  [...svg.querySelectorAll('path,circle,text')].forEach(el => el.remove());
-  // Render saved areas
-  areas.forEach((a, i) => {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', pointsToD(a.screenPoints));
-    path.setAttribute('fill', VALUE_FILL[a.valueType]);
-    path.setAttribute('stroke', VALUE_CSS[a.valueType]);
-    path.setAttribute('stroke-width', '2');
-    path.setAttribute('stroke-linejoin', 'round');
-    path.setAttribute('opacity', '0.85');
-    svg.appendChild(path);
-    // Label at centroid
-    const cx = a.screenPoints.reduce((s, p) => s + p.x, 0) / a.screenPoints.length;
-    const cy = a.screenPoints.reduce((s, p) => s + p.y, 0) / a.screenPoints.length;
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', cx); label.setAttribute('y', cy);
-    label.setAttribute('text-anchor', 'middle'); label.setAttribute('dominant-baseline', 'middle');
-    label.setAttribute('fill', 'white'); label.setAttribute('font-size', '11');
-    label.setAttribute('font-family', 'DM Mono, monospace');
-    label.setAttribute('paint-order', 'stroke');
-    label.setAttribute('stroke', VALUE_CSS[a.valueType]); label.setAttribute('stroke-width', '3');
-    label.textContent = `${i + 1} ${a.valueType}`;
-    svg.appendChild(label);
-  });
-}
-
-// Live preview path while drawing
-let previewPath = null;
-function updatePreview() {
-  if (previewPath) previewPath.remove();
-  if (drawingPoints.length < 2) return;
-  previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  previewPath.setAttribute('d', pointsToD(drawingPoints));
-  previewPath.setAttribute('fill', 'rgba(255,255,255,0.08)');
-  previewPath.setAttribute('stroke', 'rgba(255,255,255,0.6)');
-  previewPath.setAttribute('stroke-width', '1.5');
-  previewPath.setAttribute('stroke-dasharray', '4 3');
-  previewPath.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(previewPath);
-}
-
-// ── Area drawing events ───────────────────────────────────────────────────
-svg.addEventListener('mousedown', e => {
-  if (annotationMode !== 'area') return;
-  isDrawing = true;
-  drawingPoints = [{ x: e.offsetX, y: e.offsetY }];
-  updatePreview();
-});
-
-svg.addEventListener('mousemove', e => {
-  if (!isDrawing || annotationMode !== 'area') return;
-  // Add point every 6px to avoid too many points
-  const last = drawingPoints[drawingPoints.length - 1];
-  if (Math.hypot(e.offsetX - last.x, e.offsetY - last.y) > 6) {
-    drawingPoints.push({ x: e.offsetX, y: e.offsetY });
-    updatePreview();
-  }
-});
-
-svg.addEventListener('mouseup', e => {
-  if (!isDrawing || annotationMode !== 'area') return;
-  isDrawing = false;
-  if (previewPath) { previewPath.remove(); previewPath = null; }
-  if (drawingPoints.length < 6) { drawingPoints = []; return; } // too small
-  // Simplify: keep every 3rd point max 60 points
-  const step = Math.max(1, Math.floor(drawingPoints.length / 60));
-  const simplified = drawingPoints.filter((_, i) => i % step === 0);
-  pendingArea = { screenPoints: simplified };
-  drawingPoints = [];
-  // Show sheet
-  document.getElementById('sheetTitle').textContent = 'What value does this area have?';
-  openSheet();
-});
-
-// Touch drawing support
-svg.addEventListener('touchstart', e => {
-  if (annotationMode !== 'area') return;
-  e.preventDefault();
-  const r = svg.getBoundingClientRect();
-  isDrawing = true;
-  drawingPoints = [{ x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top }];
-}, { passive: false });
-
-svg.addEventListener('touchmove', e => {
-  if (!isDrawing || annotationMode !== 'area') return;
-  e.preventDefault();
-  const r = svg.getBoundingClientRect();
-  const x = e.touches[0].clientX - r.left, y = e.touches[0].clientY - r.top;
-  const last = drawingPoints[drawingPoints.length - 1];
-  if (Math.hypot(x - last.x, y - last.y) > 6) { drawingPoints.push({ x, y }); updatePreview(); }
-}, { passive: false });
-
-svg.addEventListener('touchend', e => {
-  if (!isDrawing || annotationMode !== 'area') return;
-  isDrawing = false;
-  if (previewPath) { previewPath.remove(); previewPath = null; }
-  if (drawingPoints.length < 6) { drawingPoints = []; return; }
-  const step = Math.max(1, Math.floor(drawingPoints.length / 60));
-  pendingArea = { screenPoints: drawingPoints.filter((_, i) => i % step === 0) };
-  drawingPoints = [];
-  document.getElementById('sheetTitle').textContent = 'What value does this area have?';
-  openSheet();
-});
-
-// ── Point raycasting ──────────────────────────────────────────────────────
 let dragDist = 0, mouseDownX = 0, mouseDownY = 0;
 canvas.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; dragDist = 0; });
 canvas.addEventListener('mousemove', e => {
   dragDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
-  if (annotationMode === 'point') {
-    const hit = getHit(e.clientX, e.clientY);
-    document.getElementById('coordDisplay').textContent = hit
-      ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}` : '';
-  }
+  const hit = getHit(e.clientX, e.clientY);
+  document.getElementById('coordDisplay').textContent = hit
+    ? `x ${hit.point.x.toFixed(2)} · y ${hit.point.y.toFixed(2)} · z ${hit.point.z.toFixed(2)}` : '';
 });
 canvas.addEventListener('click', e => {
-  if (annotationMode !== 'point') return;
   if (dragDist > 5) return;
   const hit = getHit(e.clientX, e.clientY);
-  if (hit) {
-    pendingPos.copy(hit.point);
-    pendingArea = null;
-    document.getElementById('sheetTitle').textContent = 'What value does this place have?';
-    openSheet();
-  }
+  if (hit) { pendingPos.copy(hit.point); openSheet(); }
 });
 
 let touchStartX = 0, touchStartY = 0;
@@ -632,78 +486,23 @@ canvas.addEventListener('touchstart', e => {
   if (e.touches.length === 1) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
 }, { passive: true });
 canvas.addEventListener('touchend', e => {
-  if (annotationMode !== 'point' || e.changedTouches.length !== 1) return;
+  if (e.changedTouches.length !== 1) return;
   const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
   const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
   if (dx < 10 && dy < 10) {
     const hit = getHit(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-    if (hit) { pendingPos.copy(hit.point); pendingArea = null; openSheet(); }
+    if (hit) { pendingPos.copy(hit.point); openSheet(); }
   }
 }, { passive: true });
 
-// ── Segmentation map download ─────────────────────────────────────────────
-window.downloadSegMap = function() {
-  const rect = canvas.getBoundingClientRect();
-  const W = rect.width, H = rect.height;
-  const offscreen = document.createElement('canvas');
-  offscreen.width = W; offscreen.height = H;
-  const ctx = offscreen.getContext('2d');
-
-  // Black background
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, W, H);
-
-  // Draw each area as a filled polygon in its label colour
-  const LABEL_COLORS = {
-    recreational: '#1a3d6e',
-    aesthetic:    '#2d5a1b',
-    wildlife:     '#a06010',
-    avoidance:    '#c04a1e'
-  };
-
-  areas.forEach(a => {
-    ctx.beginPath();
-    ctx.moveTo(a.screenPoints[0].x, a.screenPoints[0].y);
-    a.screenPoints.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-    ctx.closePath();
-    ctx.fillStyle = LABEL_COLORS[a.valueType];
-    ctx.fill();
-  });
-
-  // Draw point pins as circles
-  pins.forEach(p => {
-    const col = LABEL_COLORS[p.valueType];
-    ctx.beginPath();
-    ctx.arc(p.screenX || 0, p.screenY || 0, 8, 0, Math.PI * 2);
-    ctx.fillStyle = col; ctx.fill();
-  });
-
-  // Legend
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.fillRect(8, 8, 180, Object.keys(LABEL_COLORS).length * 20 + 12);
-  let ly = 22;
-  Object.entries(LABEL_COLORS).forEach(([name, col]) => {
-    ctx.fillStyle = col;
-    ctx.fillRect(14, ly - 8, 12, 12);
-    ctx.fillStyle = '#fff';
-    ctx.font = '11px monospace';
-    ctx.fillText(name, 32, ly + 2);
-    ly += 20;
-  });
-
-  // Download
-  const link = document.createElement('a');
-  link.download = `ppgis_segmap_${new Date().toISOString().slice(0,10)}.png`;
-  link.href = offscreen.toDataURL('image/png');
-  link.click();
-};
-
 // ── Scene picker UI ───────────────────────────────────────────────────────
 function clearScene() {
-  // Remove all non-light objects from scene when switching
   const toRemove = [];
   scene.traverse(obj => {
-    if (obj !== scene && !(obj instanceof THREE.AmbientLight) && !(obj instanceof THREE.DirectionalLight))
+    if (obj !== scene &&
+        !(obj instanceof THREE.AmbientLight) &&
+        !(obj instanceof THREE.DirectionalLight) &&
+        obj !== spark)
       toRemove.push(obj);
   });
   toRemove.forEach(obj => scene.remove(obj));
@@ -712,8 +511,6 @@ function clearScene() {
 
 window.showPicker = function() {
   clearScene();
-  areas.length = 0;
-  [...svg.querySelectorAll('path,circle,text')].forEach(el => el.remove());
   document.getElementById('scenePicker').style.display = 'flex';
   document.getElementById('dropZone').classList.remove('visible');
   document.getElementById('sceneHud').style.display = 'none';
@@ -786,7 +583,15 @@ function loadSPZ(source) {
     sceneFormat   = 'spz';
     sceneLoadTime = Date.now();
     proxyMesh     = mesh;
-    try { const bbox = mesh.getBoundingBox(); if (bbox) frameCameraToScene(bbox); } catch (_) {}
+
+    // Compute centroid from the splat's world transform
+    // SplatMesh sits at scene origin — camera starts just in front
+    // matching how sparkjs.dev viewer initialises (0,0,1)
+    camera.position.set(0, 0, 1);
+    camera.lookAt(0, 0, 0);
+    controls.target.set(0, 0, 0);
+    controls.update();
+
     onSceneReady(fileName, 'SPZ · Spark 2.0');
     if (source instanceof File) URL.revokeObjectURL(url);
   }
@@ -798,6 +603,8 @@ function loadSPZ(source) {
       onLoad: (mesh) => onReady(mesh),
     });
     scene.add(splatMesh);
+    // Luma AI SPZ uses Y-up flipped relative to Three.js — rotate to correct
+    splatMesh.rotation.x = Math.PI;
     setProgress(20);
 
     // Fallback: initialized promise fires when splat is fully parsed
@@ -962,41 +769,17 @@ window.savePin = function() {
   if (!selectedVal) { alert('Please select a value type first.'); return; }
   const note  = document.getElementById('noteInput').value.trim();
   const dwell = Date.now() - sceneLoadTime;
-
-  if (pendingArea) {
-    // Area annotation
-    const area = {
-      valueType: selectedVal, note,
-      screenPoints: pendingArea.screenPoints,
-      format: sceneFormat, dwell_ms: dwell,
-      ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-    };
-    areas.push(area);
-    pendingArea = null;
-    renderSVGAreas();
-    closeSheet();
-    renderPins();
-    updateStats();
-  } else {
-    // Point annotation — store screen position for seg map
-    const rect = canvas.getBoundingClientRect();
-    const sx = ((pendingPos.x + 1) / 2) * rect.width;  // approximate screen pos
-    const sy = ((-pendingPos.y + 1) / 2) * rect.height;
-    const pin = {
-      valueType: selectedVal, note,
-      scene_x: pendingPos.x.toFixed(3),
-      scene_y: pendingPos.y.toFixed(3),
-      scene_z: pendingPos.z.toFixed(3),
-      screenX: sx, screenY: sy,
-      format: sceneFormat, dwell_ms: dwell,
-      ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-    };
-    pins.push(pin);
-    dropPin3D(pendingPos, selectedVal);
-    closeSheet();
-    renderPins();
-    updateStats();
-  }
+  const pin = {
+    valueType: selectedVal, note,
+    scene_x: pendingPos.x.toFixed(3),
+    scene_y: pendingPos.y.toFixed(3),
+    scene_z: pendingPos.z.toFixed(3),
+    format: sceneFormat, dwell_ms: dwell,
+    ts: new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+  };
+  pins.push(pin);
+  dropPin3D(pendingPos, selectedVal);
+  closeSheet(); renderPins(); updateStats();
 };
 window.switchTab = function(name, btn) {
   ['pins','code','schema'].forEach(t =>
@@ -1022,50 +805,183 @@ function renderPins() {
   const container = document.getElementById('tab-pins');
   document.getElementById('pinEmpty')?.remove();
   container.querySelectorAll('.pin-card').forEach(el => el.remove());
-
-  // Combine pins and areas, sort by time
-  const all = [
-    ...pins.map(p => ({ ...p, kind: 'point' })),
-    ...areas.map(a => ({ ...a, kind: 'area' }))
-  ].sort((a, b) => a.ts < b.ts ? 1 : -1);
-
-  if (all.length === 0) {
-    const empty = document.createElement('div');
-    empty.id = 'pinEmpty'; empty.className = 'pin-empty';
-    empty.innerHTML = 'no annotations yet.<br>load a scene, then click<br>or draw an area.';
-    container.appendChild(empty);
-    return;
-  }
-
-  all.forEach(p => {
+  [...pins].reverse().forEach(p => {
     const card = document.createElement('div');
     card.className = 'pin-card';
-    const icon = p.kind === 'area' ? '▭' : '●';
-    const coords = p.kind === 'point'
-      ? `(${p.scene_x}, ${p.scene_y}, ${p.scene_z})`
-      : `${p.screenPoints?.length || 0} vertices`;
     card.innerHTML = `
       <div class="pin-header">
         <div class="pin-dot" style="background:${VALUE_CSS[p.valueType]}"></div>
-        <div class="pin-type">${icon} ${p.valueType}</div>
+        <div class="pin-type">${p.valueType}</div>
         <div class="pin-ts">${p.ts}</div>
       </div>
       ${p.note ? `<div class="pin-note">${p.note}</div>` : ''}
-      <div class="pin-coords">${coords} · ${p.format} · ${(p.dwell_ms/1000).toFixed(1)}s</div>
+      <div class="pin-coords">(${p.scene_x}, ${p.scene_y}, ${p.scene_z}) · ${p.format} · ${(p.dwell_ms/1000).toFixed(1)}s</div>
     `;
-    container.appendChild(card);
+    container.prepend(card);
+  });
+}
+function updateStats() {
+  document.getElementById('statTotal').textContent    = pins.length;
+  document.getElementById('statWildlife').textContent = pins.filter(p => p.valueType === 'wildlife').length;
+  const avg = pins.length
+    ? (pins.reduce((s,p) => s + p.dwell_ms, 0) / pins.length / 1000).toFixed(1) : '—';
+  document.getElementById('statDwell').textContent = avg;
+}
+</script>
+
+<!-- ── Area drawing — separate module, no scope conflict with above ── -->
+<script type="module">
+const areas    = [];
+const drawSVG  = document.getElementById('drawSVG');
+let areaMode   = false;
+let drawing    = false;
+let drawPts    = [];
+let previewEl  = null;
+
+const FILL   = { recreational:'rgba(26,61,110,0.22)', aesthetic:'rgba(45,90,27,0.22)', wildlife:'rgba(160,96,16,0.22)', avoidance:'rgba(192,74,30,0.22)' };
+const STROKE = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
+
+function pts2d(pts) { return 'M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')+'Z'; }
+
+function redrawAreas() {
+  [...drawSVG.querySelectorAll('.ar,.al')].forEach(e=>e.remove());
+  areas.forEach((a,i)=>{
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('class','ar'); p.setAttribute('d',pts2d(a.pts));
+    p.setAttribute('fill',FILL[a.valueType]); p.setAttribute('stroke',STROKE[a.valueType]);
+    p.setAttribute('stroke-width','2'); p.setAttribute('stroke-linejoin','round');
+    drawSVG.appendChild(p);
+    const cx=a.pts.reduce((s,q)=>s+q.x,0)/a.pts.length;
+    const cy=a.pts.reduce((s,q)=>s+q.y,0)/a.pts.length;
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('class','al'); t.setAttribute('x',cx); t.setAttribute('y',cy);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle');
+    t.setAttribute('fill','#fff'); t.setAttribute('font-size','11');
+    t.setAttribute('font-family','DM Mono,monospace');
+    t.setAttribute('stroke',STROKE[a.valueType]); t.setAttribute('stroke-width','3');
+    t.setAttribute('paint-order','stroke');
+    t.textContent=`${i+1} · ${a.valueType}`; drawSVG.appendChild(t);
   });
 }
 
-function updateStats() {
-  document.getElementById('statTotal').textContent    = pins.length;
-  document.getElementById('statAreas').textContent    = areas.length;
-  document.getElementById('statWildlife').textContent = [...pins, ...areas].filter(p => p.valueType === 'wildlife').length;
-  const all = [...pins, ...areas];
-  const avg = all.length
-    ? (all.reduce((s,p) => s + p.dwell_ms, 0) / all.length / 1000).toFixed(1) : '—';
-  document.getElementById('statDwell').textContent = avg;
+function setPreview(pts) {
+  if (previewEl) previewEl.remove();
+  if (pts.length<2) return;
+  previewEl=document.createElementNS('http://www.w3.org/2000/svg','path');
+  previewEl.setAttribute('d',pts2d(pts)); previewEl.setAttribute('fill','rgba(255,255,255,0.07)');
+  previewEl.setAttribute('stroke','rgba(255,255,255,0.55)'); previewEl.setAttribute('stroke-width','1.5');
+  previewEl.setAttribute('stroke-dasharray','5 3'); drawSVG.appendChild(previewEl);
 }
+
+function finishDraw() {
+  drawing=false;
+  if (previewEl){previewEl.remove();previewEl=null;}
+  if (drawPts.length<6){drawPts=[];return;}
+  const step=Math.max(1,Math.floor(drawPts.length/60));
+  const pts=drawPts.filter((_,i)=>i%step===0);
+  drawPts=[];
+  window._pendingAreaPts=pts;
+  window.openSheet();
+}
+
+// Mode toggle — exposed globally so onclick works
+window.setDrawMode=function(mode){
+  areaMode=mode==='area';
+  document.getElementById('modePoint').className=`mode-btn ${areaMode?'off':'on'}`;
+  document.getElementById('modeArea').className =`mode-btn ${areaMode?'on':'off'}`;
+  drawSVG.className=areaMode?'active':'';
+  // Signal main script to toggle OrbitControls
+  window._areaMode=areaMode;
+};
+
+// Poll to sync OrbitControls state with main module
+setInterval(()=>{
+  if(window._syncOrbit) window._syncOrbit(!window._areaMode);
+},100);
+
+// Drawing events
+drawSVG.addEventListener('mousedown',e=>{if(!areaMode)return;drawing=true;drawPts=[{x:e.offsetX,y:e.offsetY}];});
+drawSVG.addEventListener('mousemove',e=>{
+  if(!drawing||!areaMode)return;
+  const l=drawPts[drawPts.length-1];
+  if(Math.hypot(e.offsetX-l.x,e.offsetY-l.y)>6){drawPts.push({x:e.offsetX,y:e.offsetY});setPreview(drawPts);}
+});
+drawSVG.addEventListener('mouseup',()=>{if(drawing&&areaMode)finishDraw();});
+drawSVG.addEventListener('touchstart',e=>{
+  if(!areaMode)return;e.preventDefault();
+  const r=drawSVG.getBoundingClientRect();drawing=true;
+  drawPts=[{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}];
+},{passive:false});
+drawSVG.addEventListener('touchmove',e=>{
+  if(!drawing||!areaMode)return;e.preventDefault();
+  const r=drawSVG.getBoundingClientRect();
+  const x=e.touches[0].clientX-r.left,y=e.touches[0].clientY-r.top;
+  const l=drawPts[drawPts.length-1];
+  if(Math.hypot(x-l.x,y-l.y)>6){drawPts.push({x,y});setPreview(drawPts);}
+},{passive:false});
+drawSVG.addEventListener('touchend',()=>{if(drawing&&areaMode)finishDraw();});
+
+// Intercept savePin
+const _orig=window.savePin;
+window.savePin=function(){
+  if(!window._pendingAreaPts){_orig();return;}
+  const selBtn=document.querySelector('.vbtn.sel');
+  if(!selBtn){alert('Please select a value type first.');return;}
+  areas.push({
+    valueType:selBtn.dataset.val,
+    note:document.getElementById('noteInput').value.trim(),
+    pts:window._pendingAreaPts,
+    format:window._sceneFormat||'?',
+    dwell_ms:Date.now()-(window._sceneLoadTime||Date.now()),
+    ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  });
+  window._pendingAreaPts=null;
+  redrawAreas();
+  window.closeSheet();
+  // append area cards to sidebar
+  const c=document.getElementById('tab-pins');
+  document.getElementById('pinEmpty')?.remove();
+  c.querySelectorAll('.area-card').forEach(e=>e.remove());
+  [...areas].reverse().forEach(a=>{
+    const card=document.createElement('div');
+    card.className='pin-card area-card';
+    card.innerHTML=`
+      <div class="pin-header">
+        <div class="pin-dot" style="background:${STROKE[a.valueType]}"></div>
+        <div class="pin-type">▭ ${a.valueType}</div>
+        <div class="pin-ts">${a.ts}</div>
+      </div>
+      ${a.note?`<div class="pin-note">${a.note}</div>`:''}
+      <div class="pin-coords">${a.pts.length} pts · ${a.format} · ${(a.dwell_ms/1000).toFixed(1)}s</div>
+    `;
+    c.prepend(card);
+  });
+};
+
+// Seg map download
+window.downloadSegMap=function(){
+  const cv=document.getElementById('sceneCanvas');
+  const rect=cv.getBoundingClientRect();
+  const W=Math.round(rect.width),H=Math.round(rect.height);
+  const off=Object.assign(document.createElement('canvas'),{width:W,height:H});
+  const ctx=off.getContext('2d');
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  areas.forEach(a=>{
+    ctx.beginPath();ctx.moveTo(a.pts[0].x,a.pts[0].y);
+    a.pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.closePath();ctx.fillStyle=STROKE[a.valueType];ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+  });
+  const entries=Object.entries(STROKE);
+  ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(6,6,160,entries.length*18+10);
+  entries.forEach(([name,col],i)=>{
+    ctx.fillStyle=col;ctx.fillRect(12,14+i*18,10,10);
+    ctx.fillStyle='#fff';ctx.font='10px monospace';ctx.fillText(name,28,23+i*18);
+  });
+  const a=document.createElement('a');
+  a.download=`ppgis_seg_${new Date().toISOString().slice(0,10)}.png`;
+  a.href=off.toDataURL('image/png');a.click();
+};
 </script>
 </body>
 </html>

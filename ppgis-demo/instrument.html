@@ -100,9 +100,7 @@
   .hud-change:hover { background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.8); }
 
   .coord-display { position: absolute; bottom: 14px; left: 14px; font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.38); pointer-events: none; }
-  /* area drawing */
   #drawSVG { position:absolute; inset:0; pointer-events:none; z-index:7; overflow:visible; }
-  #drawSVG.active { pointer-events:all; cursor:crosshair; }
   .mode-row { display:flex; gap:5px; pointer-events:all; }
   .mode-btn { font-family:'DM Mono',monospace; font-size:11px; padding:4px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.14); cursor:pointer; transition:all 0.15s; }
   .mode-btn.off { background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.5); }
@@ -244,6 +242,7 @@
           <button class="mode-btn off" id="modeArea"  onclick="setDrawMode('area')">✏️ area</button>
         </div>
         <button class="dl-btn" onclick="downloadSegMap()">⬇ seg map</button>
+        <button class="dl-btn" onclick="downloadCSV()">⬇ CSV</button>
         <div class="overlay-toggle">
           <button class="ot-btn" id="bioBtn"    onclick="toggleBio()">bio overlay: off</button>
           <button class="ot-btn" id="canopyBtn" onclick="toggleCanopy()">canopy layer: off</button>
@@ -444,14 +443,6 @@ new ResizeObserver(resize).observe(panel);
 requestAnimationFrame(resize);
 renderer.setAnimationLoop(() => { applyWASD(); controls.update(); renderer.render(scene, camera); });
 
-// Expose to area-drawing module (separate script tag)
-window._syncOrbit = (enabled) => { controls.enabled = enabled; };
-window._sceneFormat    = null;
-window._sceneLoadTime  = Date.now();
-// Keep _sceneFormat in sync whenever sceneFormat changes
-Object.defineProperty(window, '_sceneFormat',    { get: () => sceneFormat });
-Object.defineProperty(window, '_sceneLoadTime',  { get: () => sceneLoadTime });
-
 // ── Raycasting ────────────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points = { threshold: 0.05 };
@@ -477,9 +468,23 @@ canvas.addEventListener('mousemove', e => {
 });
 canvas.addEventListener('click', e => {
   if (dragDist > 5) return;
+  // left-click navigates only — annotation via right-click
+});
+
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if (window._areaMode) return; // area mode handled by second script
   const hit = getHit(e.clientX, e.clientY);
   if (hit) { pendingPos.copy(hit.point); openSheet(); }
 });
+
+// Expose helpers to area drawing module
+window._syncOrbit   = (en) => { controls.enabled = en; };
+window._getHit      = (cx, cy) => getHit(cx, cy);
+window._camera      = camera;
+window._renderer    = renderer;
+Object.defineProperty(window, '_sceneFormat',   { get: () => sceneFormat });
+Object.defineProperty(window, '_sceneLoadTime', { get: () => sceneLoadTime });
 
 let touchStartX = 0, touchStartY = 0;
 canvas.addEventListener('touchstart', e => {
@@ -780,6 +785,7 @@ window.savePin = function() {
   pins.push(pin);
   dropPin3D(pendingPos, selectedVal);
   closeSheet(); renderPins(); updateStats();
+  window._mainPins = pins; // expose for seg map
 };
 window.switchTab = function(name, btn) {
   ['pins','code','schema'].forEach(t =>
@@ -829,159 +835,335 @@ function updateStats() {
 }
 </script>
 
-<!-- ── Area drawing — separate module, no scope conflict with above ── -->
+<!-- ── Area/pin annotation — 3D coords, camera-stable overlay ── -->
 <script type="module">
-const areas    = [];
-const drawSVG  = document.getElementById('drawSVG');
-let areaMode   = false;
-let drawing    = false;
-let drawPts    = [];
-let previewEl  = null;
+// ── This script stores ALL annotations as 3D world coordinates.
+// The SVG overlay reprojects 3D→screen every frame so shapes stay
+// locked to the scene regardless of camera movement.
+// The seg map export is a top-down orthographic projection onto XZ plane.
+
+const areas  = [];  // { valueType, note, pts3d: [{x,y,z}], format, dwell_ms, ts }
+const pins3d = [];  // mirror of main module's pins with 3D coords
+
+const drawSVG   = document.getElementById('drawSVG');
+const canvas    = document.getElementById('sceneCanvas');
+
+let areaMode = false;
+let polyPts3d = [];    // [{x,y,z}] 3D vertices being placed
+let mousePos  = {x:0, y:0}; // screen cursor for rubber-band
+
+const CLOSE_R = 20; // px proximity to close polygon
 
 const FILL   = { recreational:'rgba(26,61,110,0.22)', aesthetic:'rgba(45,90,27,0.22)', wildlife:'rgba(160,96,16,0.22)', avoidance:'rgba(192,74,30,0.22)' };
 const STROKE = { recreational:'#1a3d6e', aesthetic:'#2d5a1b', wildlife:'#a06010', avoidance:'#c04a1e' };
 
-function pts2d(pts) { return 'M'+pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')+'Z'; }
-
+// ── Rereproject every animation frame so overlay is camera-stable ─────────
 function redrawAreas() {
   [...drawSVG.querySelectorAll('.ar,.al')].forEach(e=>e.remove());
-  areas.forEach((a,i)=>{
-    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('class','ar'); p.setAttribute('d',pts2d(a.pts));
-    p.setAttribute('fill',FILL[a.valueType]); p.setAttribute('stroke',STROKE[a.valueType]);
-    p.setAttribute('stroke-width','2'); p.setAttribute('stroke-linejoin','round');
-    drawSVG.appendChild(p);
-    const cx=a.pts.reduce((s,q)=>s+q.x,0)/a.pts.length;
-    const cy=a.pts.reduce((s,q)=>s+q.y,0)/a.pts.length;
-    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
-    t.setAttribute('class','al'); t.setAttribute('x',cx); t.setAttribute('y',cy);
-    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle');
-    t.setAttribute('fill','#fff'); t.setAttribute('font-size','11');
-    t.setAttribute('font-family','DM Mono,monospace');
-    t.setAttribute('stroke',STROKE[a.valueType]); t.setAttribute('stroke-width','3');
-    t.setAttribute('paint-order','stroke');
-    t.textContent=`${i+1} · ${a.valueType}`; drawSVG.appendChild(t);
+  areas.forEach((a, i) => {
+    const d = pts2dFrom3d(a.pts3d);
+    if (!d) return;
+    drawSVG.appendChild(mk('path', {
+      class:'ar', d, fill:FILL[a.valueType],
+      stroke:STROKE[a.valueType], 'stroke-width':'2', 'stroke-linejoin':'round'
+    }));
+    // Centroid label
+    const sc = a.pts3d.map(p=>project3d(p)).filter(p=>p&&!p.behind);
+    if (sc.length) {
+      const cx = sc.reduce((s,p)=>s+p.x,0)/sc.length;
+      const cy = sc.reduce((s,p)=>s+p.y,0)/sc.length;
+      const t = mk('text', { class:'al', x:cx, y:cy, 'text-anchor':'middle',
+        'dominant-baseline':'middle', fill:'#fff', 'font-size':'11',
+        'font-family':'DM Mono,monospace', stroke:STROKE[a.valueType],
+        'stroke-width':'3', 'paint-order':'stroke' });
+      t.textContent = `${i+1} · ${a.valueType}`;
+      drawSVG.appendChild(t);
+    }
   });
 }
 
-function setPreview(pts) {
-  if (previewEl) previewEl.remove();
-  if (pts.length<2) return;
-  previewEl=document.createElementNS('http://www.w3.org/2000/svg','path');
-  previewEl.setAttribute('d',pts2d(pts)); previewEl.setAttribute('fill','rgba(255,255,255,0.07)');
-  previewEl.setAttribute('stroke','rgba(255,255,255,0.55)'); previewEl.setAttribute('stroke-width','1.5');
-  previewEl.setAttribute('stroke-dasharray','5 3'); drawSVG.appendChild(previewEl);
+// ── Live polygon preview ──────────────────────────────────────────────────
+let previewGroup = null;
+function updatePolyPreview() {
+  if (previewGroup) previewGroup.remove();
+  if (polyPts3d.length === 0) { previewGroup = null; return; }
+
+  previewGroup = mk('g', {});
+  const screen = polyPts3d.map(p => project3d(p)).filter(p => p && !p.behind);
+
+  // Polygon so far + cursor
+  const allPts = [...screen, mousePos];
+  if (allPts.length >= 2) {
+    const d = 'M' + allPts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L') +
+              (screen.length >= 2 ? 'Z' : '');
+    previewGroup.appendChild(mk('path', {
+      d, fill:'rgba(255,255,255,0.07)', stroke:'rgba(255,255,255,0.6)',
+      'stroke-width':'1.5', 'stroke-dasharray':'5 3', 'stroke-linejoin':'round'
+    }));
+  }
+
+  // Vertex dots
+  const nearFirst = screen.length >= 3 &&
+    Math.hypot(mousePos.x - screen[0].x, mousePos.y - screen[0].y) < CLOSE_R;
+
+  screen.forEach((p, i) => {
+    const isFirst = i === 0;
+    previewGroup.appendChild(mk('circle', {
+      cx:p.x, cy:p.y, r: isFirst ? (nearFirst ? 9 : 6) : 4,
+      fill: isFirst ? (nearFirst ? '#6db85c' : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.7)',
+      stroke:'rgba(255,255,255,0.5)', 'stroke-width':'1.5'
+    }));
+    if (!isFirst) {
+      const lbl = mk('text', {x:p.x+8, y:p.y-6, 'font-size':'10',
+        fill:'rgba(255,255,255,0.7)', 'font-family':'DM Mono,monospace'});
+      lbl.textContent = i + 1;
+      previewGroup.appendChild(lbl);
+    }
+  });
+
+  if (screen.length >= 3) {
+    const lbl = mk('text', {x:screen[0].x+8, y:screen[0].y-8, 'font-size':'10',
+      fill:'#6db85c', 'font-family':'DM Mono,monospace'});
+    lbl.textContent = 'close';
+    previewGroup.appendChild(lbl);
+  }
+
+  drawSVG.appendChild(previewGroup);
 }
 
-function finishDraw() {
-  drawing=false;
-  if (previewEl){previewEl.remove();previewEl=null;}
-  if (drawPts.length<6){drawPts=[];return;}
-  const step=Math.max(1,Math.floor(drawPts.length/60));
-  const pts=drawPts.filter((_,i)=>i%step===0);
-  drawPts=[];
-  window._pendingAreaPts=pts;
-  window.openSheet();
+// ── Rereproject every animation frame so overlay is camera-stable ─────────
+function tick() {
+  redrawAreas();
+  updatePolyPreview();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// Override project3d to use raw math instead of THREE.Vector3
+function project3d(pt3) {
+  const cam = window._camera;
+  if (!cam) return null;
+  const e = cam.matrixWorldInverse.elements;
+  const pe = cam.projectionMatrix.elements;
+  const x = e[0]*pt3.x + e[4]*pt3.y + e[8]*pt3.z  + e[12];
+  const y = e[1]*pt3.x + e[5]*pt3.y + e[9]*pt3.z  + e[13];
+  const z = e[2]*pt3.x + e[6]*pt3.y + e[10]*pt3.z + e[14];
+  const px = pe[0]*x + pe[8]*z;
+  const py = pe[5]*y + pe[9]*z;
+  const pw = pe[11]*z;
+  if (Math.abs(pw) < 0.0001) return null;
+  const ndcX = px/pw, ndcY = py/pw;
+  // Reject points outside NDC range (behind camera or off screen)
+  if (ndcX < -2 || ndcX > 2 || ndcY < -2 || ndcY > 2) return null;
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (ndcX + 1) / 2 * rect.width,
+    y: (-ndcY + 1) / 2 * rect.height,
+    behind: false
+  };
 }
 
-// Mode toggle — exposed globally so onclick works
-window.setDrawMode=function(mode){
-  areaMode=mode==='area';
-  document.getElementById('modePoint').className=`mode-btn ${areaMode?'off':'on'}`;
-  document.getElementById('modeArea').className =`mode-btn ${areaMode?'on':'off'}`;
-  drawSVG.className=areaMode?'active':'';
-  // Signal main script to toggle OrbitControls
-  window._areaMode=areaMode;
+function pts2dFrom3d(pts3) {
+  const screen = pts3.map(p => project3d(p)).filter(p => p && !p.behind);
+  if (screen.length < 2) return '';
+  return 'M' + screen.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L') + 'Z';
+}
+
+const ns = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs) {
+  const el = document.createElementNS(ns, tag);
+  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+  return el;
+}
+
+// ── Redraw saved areas reprojected to current camera ─────────────────────
+
+// ── Instruction overlays ──────────────────────────────────────────────────
+const instrEl = Object.assign(document.createElement('div'), {id:'areaInstr'});
+instrEl.style.cssText = `position:absolute;bottom:44px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.65);color:rgba(255,255,255,0.75);font-family:'DM Mono',monospace;
+  font-size:11px;padding:7px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);
+  pointer-events:none;white-space:nowrap;display:none;z-index:20;`;
+document.getElementById('scenePanel').appendChild(instrEl);
+
+const ptInstrEl = Object.assign(document.createElement('div'), {id:'ptInstr'});
+ptInstrEl.style.cssText = instrEl.style.cssText.replace('display:none','display:block');
+ptInstrEl.textContent = '📍  right-click on scene to place a pin · drag to orbit';
+document.getElementById('scenePanel').appendChild(ptInstrEl);
+
+function updateInstr() {
+  if (!areaMode) { instrEl.style.display='none'; return; }
+  instrEl.style.display = 'block';
+  instrEl.textContent =
+    polyPts3d.length === 0 ? '✏️  right-click to place first vertex' :
+    polyPts3d.length < 3   ? `✏️  ${polyPts3d.length} vertices · right-click to add more` :
+                             `✏️  ${polyPts3d.length} vertices · right-click near ① to close`;
+}
+
+// ── Mode toggle ───────────────────────────────────────────────────────────
+window.setDrawMode = function(mode) {
+  polyPts3d = [];
+  if (previewGroup) { previewGroup.remove(); previewGroup = null; }
+  areaMode = mode === 'area';
+  window._areaMode = areaMode;
+  document.getElementById('modePoint').className = `mode-btn ${areaMode?'off':'on'}`;
+  document.getElementById('modeArea').className  = `mode-btn ${areaMode?'on':'off'}`;
+  ptInstrEl.style.display  = areaMode ? 'none' : 'block';
+  updateInstr();
 };
 
-// Poll to sync OrbitControls state with main module
-setInterval(()=>{
-  if(window._syncOrbit) window._syncOrbit(!window._areaMode);
-},100);
+// ── Right-click: area vertex placement ───────────────────────────────────
+window.addEventListener('contextmenu', e => {
+  const panel = document.getElementById('scenePanel');
+  if (!panel.contains(e.target)) return;
+  e.preventDefault();
+  if (!areaMode) return;
 
-// Drawing events
-drawSVG.addEventListener('mousedown',e=>{if(!areaMode)return;drawing=true;drawPts=[{x:e.offsetX,y:e.offsetY}];});
-drawSVG.addEventListener('mousemove',e=>{
-  if(!drawing||!areaMode)return;
-  const l=drawPts[drawPts.length-1];
-  if(Math.hypot(e.offsetX-l.x,e.offsetY-l.y)>6){drawPts.push({x:e.offsetX,y:e.offsetY});setPreview(drawPts);}
+  // Raycast to get 3D position
+  const hit = window._getHit(e.clientX, e.clientY);
+  if (!hit) return;
+  const p3 = {x: hit.point.x, y: hit.point.y, z: hit.point.z};
+
+  // Check proximity to first vertex in SCREEN space to close
+  if (polyPts3d.length >= 3) {
+    const s0 = project3d(polyPts3d[0]);
+    const r = drawSVG.getBoundingClientRect();
+    const sx = e.clientX - r.left, sy = e.clientY - r.top;
+    if (s0 && Math.hypot(sx - s0.x, sy - s0.y) < CLOSE_R) {
+      // Close polygon
+      if (previewGroup) { previewGroup.remove(); previewGroup = null; }
+      window._pendingAreaPts = [...polyPts3d];
+      polyPts3d = [];
+      updateInstr();
+      window.openSheet();
+      return;
+    }
+  }
+
+  polyPts3d.push(p3);
+  updateInstr();
 });
-drawSVG.addEventListener('mouseup',()=>{if(drawing&&areaMode)finishDraw();});
-drawSVG.addEventListener('touchstart',e=>{
-  if(!areaMode)return;e.preventDefault();
-  const r=drawSVG.getBoundingClientRect();drawing=true;
-  drawPts=[{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}];
-},{passive:false});
-drawSVG.addEventListener('touchmove',e=>{
-  if(!drawing||!areaMode)return;e.preventDefault();
-  const r=drawSVG.getBoundingClientRect();
-  const x=e.touches[0].clientX-r.left,y=e.touches[0].clientY-r.top;
-  const l=drawPts[drawPts.length-1];
-  if(Math.hypot(x-l.x,y-l.y)>6){drawPts.push({x,y});setPreview(drawPts);}
-},{passive:false});
-drawSVG.addEventListener('touchend',()=>{if(drawing&&areaMode)finishDraw();});
 
-// Intercept savePin
-const _orig=window.savePin;
-window.savePin=function(){
-  if(!window._pendingAreaPts){_orig();return;}
-  const selBtn=document.querySelector('.vbtn.sel');
-  if(!selBtn){alert('Please select a value type first.');return;}
+// Track mouse for rubber-band
+window.addEventListener('mousemove', e => {
+  if (!areaMode || polyPts3d.length === 0) return;
+  const r = drawSVG.getBoundingClientRect();
+  mousePos = {x: e.clientX - r.left, y: e.clientY - r.top};
+});
+
+// ── savePin intercept ─────────────────────────────────────────────────────
+const _orig = window.savePin;
+window.savePin = function() {
+  if (!window._pendingAreaPts) { _orig(); return; }
+  const selBtn = document.querySelector('.vbtn.sel');
+  if (!selBtn) { alert('Please select a value type first.'); return; }
   areas.push({
-    valueType:selBtn.dataset.val,
-    note:document.getElementById('noteInput').value.trim(),
-    pts:window._pendingAreaPts,
-    format:window._sceneFormat||'?',
-    dwell_ms:Date.now()-(window._sceneLoadTime||Date.now()),
-    ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    valueType: selBtn.dataset.val,
+    note:  document.getElementById('noteInput').value.trim(),
+    pts3d: window._pendingAreaPts,
+    format:    window._sceneFormat   || '?',
+    dwell_ms:  Date.now() - (window._sceneLoadTime || Date.now()),
+    ts: new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
   });
-  window._pendingAreaPts=null;
-  redrawAreas();
+  window._pendingAreaPts = null;
   window.closeSheet();
-  // append area cards to sidebar
-  const c=document.getElementById('tab-pins');
+  // sidebar card
+  const c = document.getElementById('tab-pins');
   document.getElementById('pinEmpty')?.remove();
   c.querySelectorAll('.area-card').forEach(e=>e.remove());
-  [...areas].reverse().forEach(a=>{
-    const card=document.createElement('div');
-    card.className='pin-card area-card';
-    card.innerHTML=`
+  [...areas].reverse().forEach((a,i) => {
+    const card = document.createElement('div');
+    card.className = 'pin-card area-card';
+    card.innerHTML = `
       <div class="pin-header">
         <div class="pin-dot" style="background:${STROKE[a.valueType]}"></div>
         <div class="pin-type">▭ ${a.valueType}</div>
         <div class="pin-ts">${a.ts}</div>
       </div>
       ${a.note?`<div class="pin-note">${a.note}</div>`:''}
-      <div class="pin-coords">${a.pts.length} pts · ${a.format} · ${(a.dwell_ms/1000).toFixed(1)}s</div>
+      <div class="pin-coords">${a.pts3d.length} vertices · 3D · ${a.format}</div>
     `;
     c.prepend(card);
   });
 };
 
-// Seg map download
-window.downloadSegMap=function(){
-  const cv=document.getElementById('sceneCanvas');
-  const rect=cv.getBoundingClientRect();
-  const W=Math.round(rect.width),H=Math.round(rect.height);
-  const off=Object.assign(document.createElement('canvas'),{width:W,height:H});
-  const ctx=off.getContext('2d');
-  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-  areas.forEach(a=>{
-    ctx.beginPath();ctx.moveTo(a.pts[0].x,a.pts[0].y);
-    a.pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
-    ctx.closePath();ctx.fillStyle=STROKE[a.valueType];ctx.fill();
-    ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+// ── Seg map (screen-space) ────────────────────────────────────────────────
+window.downloadSegMap = function() {
+  if (areas.length === 0) { alert('No areas annotated yet.'); return; }
+  const cv = document.getElementById('sceneCanvas');
+  const rect = cv.getBoundingClientRect();
+  const W = Math.round(rect.width), H = Math.round(rect.height);
+  const off = Object.assign(document.createElement('canvas'),{width:W,height:H});
+  const ctx = off.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  areas.forEach(a => {
+    const screen = a.pts3d.map(p => project3d(p)).filter(p => p);
+    if (screen.length < 3) return;
+    ctx.beginPath(); ctx.moveTo(screen[0].x, screen[0].y);
+    screen.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath();
+    ctx.fillStyle = STROKE[a.valueType]; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
   });
-  const entries=Object.entries(STROKE);
-  ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(6,6,160,entries.length*18+10);
-  entries.forEach(([name,col],i)=>{
-    ctx.fillStyle=col;ctx.fillRect(12,14+i*18,10,10);
-    ctx.fillStyle='#fff';ctx.font='10px monospace';ctx.fillText(name,28,23+i*18);
+  const entries = Object.entries(STROKE);
+  ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(6,6,160,entries.length*18+10);
+  entries.forEach(([name,col],i) => {
+    ctx.fillStyle=col; ctx.fillRect(12,14+i*18,10,10);
+    ctx.fillStyle='#fff'; ctx.font='10px monospace'; ctx.fillText(name,28,23+i*18);
   });
-  const a=document.createElement('a');
-  a.download=`ppgis_seg_${new Date().toISOString().slice(0,10)}.png`;
-  a.href=off.toDataURL('image/png');a.click();
+  const a = document.createElement('a');
+  a.download = `ppgis_seg_${new Date().toISOString().slice(0,10)}.png`;
+  a.href = off.toDataURL('image/png'); a.click();
+};
+
+// ── CSV export ────────────────────────────────────────────────────────────
+window.downloadCSV = function() {
+  const rows = [];
+
+  // Header
+  rows.push(['type','value_type','note','scene_x','scene_y','scene_z',
+             'vertex_index','format','dwell_s','timestamp'].join(','));
+
+  // Point pins from main module
+  const mainPins = window._mainPins || [];
+  mainPins.forEach(p => {
+    rows.push([
+      'point',
+      p.valueType,
+      `"${(p.note||'').replace(/"/g,'""')}"`,
+      p.scene_x, p.scene_y, p.scene_z,
+      '',  // no vertex index for points
+      p.format,
+      (p.dwell_ms/1000).toFixed(1),
+      p.ts
+    ].join(','));
+  });
+
+  // Area polygons — one row per vertex
+  areas.forEach(a => {
+    a.pts3d.forEach((p, i) => {
+      rows.push([
+        'area',
+        a.valueType,
+        i === 0 ? `"${(a.note||'').replace(/"/g,'""')}"` : '',  // note only on first vertex row
+        p.x.toFixed(4), p.y.toFixed(4), p.z.toFixed(4),
+        i + 1,
+        a.format,
+        i === 0 ? (a.dwell_ms/1000).toFixed(1) : '',
+        i === 0 ? a.ts : ''
+      ].join(','));
+    });
+    // Blank row between areas for readability
+    rows.push('');
+  });
+
+  if (rows.length <= 1) { alert('No annotations yet.'); return; }
+
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.download = `ppgis_${new Date().toISOString().slice(0,10)}.csv`;
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
 };
 </script>
-</body>
-</html>

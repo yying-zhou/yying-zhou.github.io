@@ -1,0 +1,152 @@
+{
+  "cells_total": 11134,
+  "cells_flagged": 686,
+  "pop_flagged": 63813,
+  "pop_total": 1197002,
+  "median_walk_all": 7.0,
+  "median_walk_all_percell": 13.0,
+  "median_walk_flagged": 14.0,
+  "third_places": 1976,
+  "beyond15_flagged": 0.424,
+  "beyond15_all": 0.074,
+  "beyond15_flagged_slow": 0.631,
+  "beyond15_all_slow": 0.169,
+  "median_walk_flagged_slow": 18.0,
+  "top_areas": [
+    {
+      "nimi": "Olari",
+      "kunta_name": "Espoo",
+      "cells": 32,
+      "pop": 4605.56,
+      "walk": 12.0,
+      "alone": 0.46,
+      "old": 0.21
+    },
+    {
+      "nimi": "Tikkurila",
+      "kunta_name": "Vantaa",
+      "cells": 23,
+      "pop": 4169.44,
+      "walk": 11.0,
+      "alone": 0.53,
+      "old": 0.19
+    },
+    {
+      "nimi": "Munkkivuori - Niemenmäki",
+      "kunta_name": "Helsinki",
+      "cells": 16,
+      "pop": 3612.44,
+      "walk": 12.0,
+      "alone": 0.58,
+      "old": 0.17
+    },
+    {
+      "nimi": "Etelä-Vuosaari",
+      "kunta_name": "Helsinki",
+      "cells": 33,
+      "pop": 3202.94,
+      "walk": 12.0,
+      "alone": 0.48,
+      "old": 0.2
+    },
+    {
+      "nimi": "Mellunmäki",
+      "kunta_name": "Helsinki",
+      "cells": 24,
+      "pop": 2925.75,
+      "walk": 14.0,
+      "alone": 0.53,
+      "old": 0.21
+    },
+    {
+      "nimi": "Yliskylä",
+      "kunta_name": "Helsinki",
+      "cells": 16,
+      "pop": 2875.81,
+      "walk": 11.0,
+      "alone": 0.46,
+      "old": 0.25
+    },
+    {
+      "nimi": "Pihlajamäki - Viikinmäki",
+      "kunta_name": "Helsinki",
+      "cells": 14,
+      "pop": 2826.56,
+      "walk": 11.0,
+      "alone": 0.51,
+      "old": 0.18
+    },
+    {
+      "nimi": "Punavuori - Eira - Hernesaari",
+      "kunta_name": "Helsinki",
+      "cells": 6,
+      "pop": 2791.25,
+      "walk": 12.5,
+      "alone": 0.59,
+      "old": 0.17
+    },
+    {
+      "nimi": "Espoonlahti",
+      "kunta_name": "Espoo",
+      "cells": 13,
+      "pop": 2769.81,
+      "walk": 11.0,
+      "alone": 0.47,
+      "old": 0.24
+    },
+    {
+      "nimi": "Tapaninvainio",
+      "kunta_name": "Helsinki",
+      "cells": 13,
+      "pop": 2443.75,
+      "walk": 11.0,
+      "alone": 0.39,
+      "old": 0.26
+    },
+    {
+      "nimi": "Myllypuro",
+      "kunta_name": "Helsinki",
+      "cells": 13,
+      "pop": 2437.75,
+      "walk": 11.0,
+      "alone": 0.46,
+      "old": 0.2
+    },
+    {
+      "nimi": "Pähkinärinne",
+      "kunta_name": "Vantaa",
+      "cells": 11,
+      "pop": 2235.38,
+      "walk": 13.0,
+      "alone": 0.53,
+      "old": 0.19
+    },
+    {
+      "nimi": "Pohjois-Vuosaari",
+      "kunta_name": "Helsinki",
+      "cells": 10,
+      "pop": 2038.56,
+      "walk": 12.0,
+      "alone": 0.54,
+      "old": 0.22
+    },
+    {
+      "nimi": "Viherlaakso",
+      "kunta_name": "Espoo",
+      "cells": 16,
+      "pop": 2015.0,
+      "walk": 13.0,
+      "alone": 0.44,
+      "old": 0.22
+    },
+    {
+      "nimi": "Kaivoksela",
+      "kunta_name": "Vantaa",
+      "cells": 17,
+      "pop": 1921.56,
+      "walk": 12.0,
+      "alone": 0.57,
+      "old": 0.17
+    }
+  ]
+}

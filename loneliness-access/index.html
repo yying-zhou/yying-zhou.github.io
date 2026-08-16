@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where would a co-living intervention actually be needed?</title>
+<meta name="description" content="Structural loneliness risk crossed with walking access to third places, Helsinki region, from open data.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1a1a1a; --muted:#5c5c5c; --rule:#e2e2e2;
+  --accent:#c2185b; --panel:#f7f7f8; --link:#7a1140;
+  --maxw:820px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131315; --fg:#ececec; --muted:#a3a3a3; --rule:#2c2c30;
+    --accent:#ff7aa8; --panel:#1c1c20; --link:#ff9ebd;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131315; --fg:#ececec; --muted:#a3a3a3; --rule:#2c2c30;
+  --accent:#ff7aa8; --panel:#1c1c20; --link:#ff9ebd;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+header{padding:64px 0 40px; border-bottom:1px solid var(--rule); margin-bottom:44px}
+.kicker{font-size:12.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); margin:0 0 18px}
+h1{font-size:clamp(28px,4.4vw,42px); line-height:1.16; margin:0 0 18px; font-weight:650; letter-spacing:-.02em}
+.standfirst{font-size:19px; color:var(--muted); margin:0 0 26px; max-width:62ch}
+.byline{font-size:14px; color:var(--muted)}
+.byline a{color:var(--link)}
+h2{font-size:23px; margin:56px 0 14px; font-weight:640; letter-spacing:-.01em}
+h3{font-size:17px; margin:32px 0 8px; font-weight:640}
+p{margin:0 0 17px; max-width:68ch}
+a{color:var(--link)}
+.lede{font-size:17.5px}
+figure{margin:34px 0}
+figure img{width:100%; height:auto; border:1px solid var(--rule); border-radius:6px; display:block}
+figcaption{font-size:14px; color:var(--muted); margin-top:11px; max-width:68ch}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:2px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:6px; overflow:hidden; margin:34px 0}
+.stat{background:var(--bg); padding:20px 18px}
+.stat b{display:block; font-size:29px; font-weight:650; letter-spacing:-.02em; line-height:1.15}
+.stat span{display:block; font-size:13px; color:var(--muted); margin-top:6px; line-height:1.4}
+.stat.hl b{color:var(--accent)}
+#map{height:460px; border:1px solid var(--rule); border-radius:6px; margin:26px 0 11px; z-index:0}
+.leaflet-container{background:var(--panel); font:inherit}
+.note{background:var(--panel); border-left:3px solid var(--accent); padding:18px 20px;
+  border-radius:0 6px 6px 0; margin:30px 0}
+.note p:last-child{margin-bottom:0}
+.note strong{color:var(--accent)}
+.cards{display:grid; gap:18px; margin:28px 0}
+.card{border:1px solid var(--rule); border-radius:6px; padding:22px 24px; background:var(--panel)}
+.card h4{margin:0 0 4px; font-size:17px; font-weight:640}
+.card .where{font-size:13px; color:var(--muted); margin:0 0 14px}
+.card dl{display:grid; grid-template-columns:auto 1fr; gap:5px 16px; margin:0 0 15px; font-size:14.5px}
+.card dt{color:var(--muted)}
+.card dd{margin:0}
+.card .spec{margin:0; font-size:15px}
+.card .spec b{font-weight:640}
+table{width:100%; border-collapse:collapse; font-size:14.5px; margin:22px 0}
+th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--rule)}
+th{font-weight:640; color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.05em}
+td.num,th.num{text-align:right; font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+.legend-grid{display:inline-grid; grid-template-columns:repeat(3,26px); gap:2px; vertical-align:middle; margin:0 8px}
+.legend-grid i{display:block; height:26px}
+footer{border-top:1px solid var(--rule); margin-top:64px; padding:32px 0 72px; font-size:14px; color:var(--muted)}
+footer a{color:var(--link)}
+ul{max-width:68ch; padding-left:22px}
+li{margin-bottom:7px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13.5px;
+  background:var(--panel); padding:1px 5px; border-radius:3px}
+body.embed header{display:none}
+body.embed .wrap{padding-top:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="kicker">Open-data study · Helsinki region</p>
+    <h1>Where would a co-living intervention actually be needed?</h1>
+    <p class="standfirst">Crossing structural loneliness risk against walking access to third
+      places, at 250&nbsp;metres, for the whole Helsinki region — and then asking what the map
+      still cannot tell you.</p>
+    <p class="byline">Yingying (Kerry) Zhou · <span id="date">2026</span> ·
+      <a href="#data">data &amp; code</a></p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<p class="lede">Loneliness is treated as a housing-design problem and as a public-health
+problem, but rarely as a <em>spatial targeting</em> problem. Before asking what a shared-living
+intervention should look like, it is worth asking where the conditions for one actually
+coincide: people who are structurally more exposed to isolation, living where the informal
+places that produce unplanned social contact are furthest away.</p>
+
+<p>This study builds that map for the Helsinki region from three open datasets, at 250-metre
+resolution. It took five days. It is a worked example of a method, not a finding about
+loneliness — a distinction the last section takes seriously.</p>
+
+<div class="stats" id="stats"></div>
+
+<h2>The map</h2>
+
+<p>Two variables, three classes each, nine combinations. Rows are structural loneliness risk;
+columns are how bad the walk to the nearest third place is. The corner that matters is the
+bottom right — high risk <em>and</em> worst access — outlined in crimson.</p>
+
+<figure>
+  <img src="figures/bivariate_map.png" alt="Bivariate choropleth of the Helsinki region showing structural loneliness risk crossed with walking access to third places at 250 metre resolution.">
+  <figcaption>Inhabited 250&nbsp;m cells only. Cells with no modelled residents — forest, water,
+    the airport, industrial land — are excluded; leaving them in produces a map whose worst
+    accessibility is all trees. Two large flagged blobs remain in the rural north-west; they
+    are visually prominent and demographically minor, holding a few hundred residents between
+    them. Two thirds of the flagged population sits in the fifteen urban areas tabled
+    below.</figcaption>
+</figure>
+
+<figure>
+  <img src="figures/access_histogram.png" alt="Histogram of walking minutes to the nearest third place, with flagged cells highlighted.">
+  <figcaption>Counted per cell, as here, the distribution has a long right tail of empty rural
+    land. Counted per resident it is far tighter: half the region's population is within
+    7&nbsp;minutes of a third place. Either way the flagged cells sit in the tail, which is the
+    point — a targeting instrument is only useful if it identifies a minority.</figcaption>
+</figure>
+
+<h2>The flagged areas, up close</h2>
+
+<p>Pan and click. Each crimson square is a 250&nbsp;m cell in the worst class; grey dots are
+the third places that survived the filtering described below.</p>
+
+<div id="map"></div>
+<p style="font-size:14px;color:var(--muted);margin-top:0">
+  Basemap © OpenStreetMap contributors, © CARTO.</p>
+
+<h3>Where the flagged cells cluster</h3>
+<div class="scroll"><table id="areas">
+  <thead><tr><th>Postal area</th><th>Municipality</th><th class="num">Cells</th>
+    <th class="num">Residents</th><th class="num">Median walk</th>
+    <th class="num">Live alone</th><th class="num">Aged 65+</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h2>Two methods results that changed the answer</h2>
+
+<p>Both of these inverted the finding rather than nudging it. Neither was visible until the
+first version of the map had already been produced and looked plausible.</p>
+
+<div class="note">
+  <p><strong>1 · Land was voting instead of people.</strong> Cutting the terciles by cell
+  count let empty ground decide. The Helsinki extent runs deep into rural Uusimaa, where a
+  single postal area paints hundreds of near-empty 250&nbsp;m cells as high-risk, all with
+  long walks. The first run flagged forest fringe, an island and an <em>industrial estate</em>
+  — 773 cells holding 9,149 people, about 12 residents per cell, against 270 per cell in the
+  best-served class. It restated the fact that the countryside is not walkable.</p>
+  <p>The same contrast in one number: the median walk to a third place is <b>13 minutes per
+  cell and 7 minutes per resident</b>. Cutting the terciles by population instead makes
+  "worst third" mean the worst third of <em>residents</em> — which is what a housing
+  intervention actually asks — and the flagged set becomes the post-war suburban estates
+  above.</p>
+</div>
+
+<div class="note">
+  <p><strong>2 · Half the apparent social infrastructure was private.</strong> The first
+  OpenStreetMap query returned 3,835 venues, of which 1,911 were saunas — nearly all of them
+  apartment-block and student-housing saunas tagged <code>access=private</code>. Finnish
+  mappers also frequently leave building saunas untagged entirely.</p>
+  <p>Used naively, this makes every residential block look richly served by shared social
+  space, because every residential block <em>has a sauna in the basement that only its own
+  residents may use</em>. Removing venues tagged private, and requiring an untagged sauna to
+  carry some positive public signal, drops the dataset from 3,835 to 1,976 and materially
+  moves the accessibility surface.</p>
+</div>
+
+<figure>
+  <img src="figures/osm_audit.png" alt="Bar chart of third-place counts by type after filtering.">
+  <figcaption>What survives. Cafés, social facilities and sports centres carry the network;
+    62 public saunas remain of the 2,063 originally returned.</figcaption>
+</figure>
+
+<h2>The turn: what the map cannot say</h2>
+
+<p>The map identifies sites. It does not specify interventions — and the gap between those two
+things is not a detail, it is where design does its work. Below, three flagged clusters
+translated from a location into a specification. These are hypotheses to be tested with
+residents, not conclusions; the point is that they are the kind of statement a map cannot
+produce on its own.</p>
+
+<div class="cards">
+
+  <div class="card">
+    <h4>1 · Hernesaari and southern Eira, Helsinki</h4>
+    <p class="where">6 cells · ≈2,790 residents · the densest flagged area in the region</p>
+    <dl>
+      <dt>Live alone</dt><dd>59% — the highest of any flagged area</dd>
+      <dt>Aged 65+</dt><dd>17%</dd>
+      <dt>Walk to a third place</dt><dd>10–14 min · 16 min at slow-walker speed</dd>
+      <dt>Reads as</dt><dd>Dense new-build on a peninsula tip</dd>
+    </dl>
+    <p class="spec">The counterintuitive one, and the reason the map is worth building: this is
+    inner Helsinki, not a remote suburb. Density is not the problem and a community centre is
+    not the answer. The problem is <b>geometry and ground floor</b> — a peninsula has one way
+    out, so every resident already passes the same neck of land, and small flats produce a
+    high share of one-person households with nothing at street level to walk to.
+    <br><br><b>Specification:</b> put shared provision at the <b>neck</b>, where all movement
+    already converges, not at the tip where the sea view is. Require a minimum share of
+    non-residential ground-floor frontage along the single spine rather than leaving it to
+    lease-up. And design for a sea-exposed site — a route that is sheltered and lit is the
+    difference between a 14-minute walk taken and not taken in February.</p>
+  </div>
+
+  <div class="card">
+    <h4>2 · Munkkivuori – Niemenmäki, Helsinki</h4>
+    <p class="where">16 cells · ≈3,610 residents</p>
+    <dl>
+      <dt>Live alone</dt><dd>58%</dd>
+      <dt>Aged 65+</dt><dd>17%</dd>
+      <dt>Walk to a third place</dt><dd>10–20 min · 16 min at slow-walker speed</dd>
+      <dt>Reads as</dt><dd>Post-war estate built around a single centre</dd>
+    </dl>
+    <p class="spec">A monocentric estate: one well-provided local centre serves the middle
+    well and the edge badly, and it is the edge cells that flag. The 10-to-20-minute spread
+    inside one small area is the whole diagnosis — this is a <b>distribution</b> problem, not
+    a provision problem.
+    <br><br><b>Specification:</b> do not build a second centre; the population will not
+    support one and it would cannibalise the first. Distribute instead — small bookable rooms
+    of roughly 40–80&nbsp;m² at ground level in the existing blocks at the estate edge, sited
+    on the internal path network residents already use, each within about 300&nbsp;m of the
+    blocks it serves. The building stock to convert already exists; what is missing is the
+    right to use it that way.</p>
+  </div>
+
+  <div class="card">
+    <h4>3 · Tapaninvainio, Helsinki</h4>
+    <p class="where">13 cells · ≈2,440 residents</p>
+    <dl>
+      <dt>Live alone</dt><dd>39% — the lowest of the flagged areas</dd>
+      <dt>Aged 65+</dt><dd>26% — the highest</dd>
+      <dt>Walk to a third place</dt><dd>10–16 min · 15 min at slow-walker speed</dd>
+      <dt>Reads as</dt><dd>Detached-house area, owner-occupied, ageing in place</dd>
+    </dl>
+    <p class="spec">The inverse profile of the other two, and the hardest. Few people live
+    alone <em>yet</em>; the oldest population in the flagged set is mostly couples in houses
+    they own, and the arithmetic of the next fifteen years turns a large share of them into
+    one-person households in place. There is no ground floor to convert, no shared land, and
+    single-family plot zoning.
+    <br><br><b>Specification:</b> here co-living cannot be a building type — it has to be a
+    <b>plot and tenure</b> instrument. Complementary building rights permitting a second small
+    dwelling plus one shared room per three to five plots, with the shared unit placed on the
+    plot boundary along the existing walking route to the bus stop, never in a back garden.
+    A shared room you have to be invited into is not a third place.</p>
+  </div>
+
+</div>
+
+<p>Three areas, one class on the map, three incompatible answers. A ground-floor requirement, a
+distribution rule and a zoning instrument are not variants of one intervention. That gap is not
+a shortcoming of the analysis — it is the point. The map is a targeting instrument, and
+targeting is where design work starts rather than where it finishes.</p>
+
+<h2>What this is and is not</h2>
+
+<ul>
+  <li><strong>It is structural risk, not loneliness.</strong> Nobody in this dataset was asked
+    whether they feel lonely. Living alone and being over 65 are conditions under which
+    loneliness is more prevalent in the literature; they are not loneliness. An area can score
+    high here and be intensely sociable.</li>
+  <li><strong>Risk is measured at postal-area resolution, access at 250&nbsp;m.</strong> Risk
+    is drawn at 250&nbsp;m so the two can be crossed, but it does not vary within a postal
+    area. Reading a single cell's risk as a property of that cell is an ecological fallacy.
+    Statistics Finland's 1&nbsp;km population grid carries a 65+ count and would sharpen half
+    the index; that is the obvious next refinement.</li>
+  <li><strong>Third places are an OpenStreetMap artefact.</strong> Completeness varies by
+    municipality and by venue type. Libraries are mapped well; informal community space is
+    mapped badly, and it is precisely informal space that matters most here.</li>
+  <li><strong>Walking time is modelled, not experienced.</strong> The Travel Time Matrix routes
+    a notional pedestrian. It does not know about ice, darkness, stairs, hills, or whether a
+    76-year-old will make that walk in February — all of which a design brief must know.</li>
+  <li><strong>Five days.</strong> A real study would validate the risk index against survey
+    data, test the sensitivity of the third-place definition, and ask residents whether the
+    flagged areas feel the way the map says they should.</li>
+</ul>
+
+<h2 id="data">Data and code</h2>
+
+<ul>
+  <li><a href="https://stat.fi/tup/paavo/index_en.html">Statistics Finland, Paavo
+    postal-code open data</a> (2024 reference year) — household composition and age structure.
+    CC BY 4.0.</li>
+  <li><a href="https://doi.org/10.5281/zenodo.11220980">Helsinki Region Travel Time Matrix
+    2023</a>, Digital Geography Lab, University of Helsinki — network walking times between all
+    13,132 cells of a 250&nbsp;m grid. CC BY 4.0.</li>
+  <li><a href="https://stat.fi/">Statistics Finland 1&nbsp;km population grid</a> (2025) —
+    inhabited mask and population weights. CC BY 4.0.</li>
+  <li><a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> via Overpass —
+    third places. ODbL.</li>
+</ul>
+
+<p>Every step is scripted end to end; nothing was done by hand in a GIS. The pipeline is four
+scripts: fetch Paavo, fetch OSM, fetch the population grid, build the index, render.</p>
+
+</div>
+
+<footer><div class="wrap">
+  Yingying (Kerry) Zhou · built with open data and open-source tooling ·
+  figures and code released for reuse.
+</div></footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+  document.getElementById('date').textContent =
+    new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  const fmt = n => n.toLocaleString('en-GB');
+  const pct = n => Math.round(n*100) + '%';
+
+  fetch('data/summary.json').then(r=>r.json()).then(s=>{
+    document.getElementById('stats').innerHTML = `
+      <div class="stat hl"><b>${fmt(s.cells_flagged)}</b>
+        <span>250 m cells flagged: high risk &amp; worst access</span></div>
+      <div class="stat hl"><b>${fmt(s.pop_flagged)}</b>
+        <span>modelled residents in them</span></div>
+      <div class="stat"><b>${s.median_walk_flagged} min</b>
+        <span>median walk to a third place there, vs ${s.median_walk_all} min per resident region-wide</span></div>
+      <div class="stat"><b>${pct(s.beyond15_flagged)}</b>
+        <span>of flagged cells are beyond a 15-minute walk, vs ${pct(s.beyond15_all)} of residents region-wide</span></div>
+      <div class="stat hl"><b>${pct(s.beyond15_flagged_slow)}</b>
+        <span>beyond 15 minutes at slow-walker speed — the standard is met for an average walker and missed for the people the index is about</span></div>
+      <div class="stat"><b>${fmt(s.third_places)}</b>
+        <span>third places, after removing private venues</span></div>
+      <div class="stat"><b>${fmt(s.cells_total)}</b>
+        <span>inhabited cells analysed</span></div>`;
+
+    const tb = document.querySelector('#areas tbody');
+    tb.innerHTML = s.top_areas.map(a=>`<tr>
+      <td>${a.nimi}</td><td>${a.kunta_name}</td>
+      <td class="num">${a.cells}</td>
+      <td class="num">${fmt(Math.round(a.pop))}</td>
+      <td class="num">${a.walk} min</td>
+      <td class="num">${pct(a.alone)}</td>
+      <td class="num">${pct(a.old)}</td></tr>`).join('');
+  }).catch(()=>{});
+
+  const map = L.map('map',{scrollWheelZoom:false}).setView([60.22,24.94],11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    {attribution:'© OpenStreetMap contributors © CARTO', maxZoom:19}).addTo(map);
+
+  fetch('data/third_places.geojson').then(r=>r.json()).then(g=>{
+    L.geoJSON(g,{pointToLayer:(f,ll)=>L.circleMarker(ll,
+      {radius:2.4,color:'#6b6b76',weight:0,fillOpacity:.55})}).addTo(map);
+  }).catch(()=>{});
+
+  fetch('data/flagged_cells.geojson').then(r=>r.json()).then(g=>{
+    const layer = L.geoJSON(g,{
+      style:{color:'#c2185b',weight:.7,fillColor:'#c2185b',fillOpacity:.42},
+      onEachFeature:(f,l)=>{
+        const p=f.properties;
+        l.bindPopup(`<b>${p.nimi||'—'}</b><br>${p.kunta_name||''}<br>
+          ${p.walk_min} min walk · ${p.walk_slow_min} min at slow-walker speed<br>
+          ${pct(p.one_person_share)} live alone · ${pct(p.share_65plus)} aged 65+<br>
+          ≈${Math.round(p.pop_est)} residents in this cell`);
+      }}).addTo(map);
+
+    const bounds = layer.getBounds();
+    if (!bounds.isValid()) return;
+
+    // Fit only once the container actually has layout size. If Leaflet initialises inside a
+    // hidden or not-yet-sized container -- a lazily loaded iframe, a collapsed tab, a pane
+    // that has not composited -- the container measures 0x0 and fitBounds resolves to maximum
+    // zoom, landing on one street instead of the region. Refit on the first real resize.
+    const el = document.getElementById('map');
+    const fit = () => {
+      if (el.clientWidth < 50 || el.clientHeight < 50) return false;
+      map.invalidateSize();
+      map.fitBounds(bounds, {padding:[24,24]});
+      return true;
+    };
+    if (!fit() && 'ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => { if (fit()) ro.disconnect(); });
+      ro.observe(el);
+    }
+    window.addEventListener('load', fit, {once:true});
+  }).catch(()=>{});
+})();
+</script>
+</body>
+</html>

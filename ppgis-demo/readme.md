@@ -2,7 +2,7 @@
 
 A single-file browser demo for annotating place-based values directly onto a 3D Gaussian Splatting scene. Built as a prototype research instrument for comparing 2D map-based vs. 3D immersive PPGIS methods in urban green space planning.
 
-Part of Yingying Zhou's PhD research plan — *Making values visible: design-oriented spatial representation for multispecies-just urban planning* — targeting Prof. Nora Fagerholm's Sustainable Landscape Systems Research Group, University of Turku.
+Part of an ongoing personal project on design-oriented spatial representation — *making values visible*: getting what people value about a place into a form specific enough to design with.
 
 ---
 

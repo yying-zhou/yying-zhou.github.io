@@ -112,7 +112,7 @@
                 </div>
                 <div class="lg:col-span-8 border-l-0 lg:border-l-2 border-black lg:pl-16">
                     <p class="text-lg lg:text-xl text-[#1A1A1A] leading-relaxed mb-8">
-                        Functional prototypes built in parallel with research development. Each demo is a working research instrument, designed to be deployed, tested with participants, and iterated on.
+                        Working prototypes and open-data studies. Each one is built to be deployed and used, not just illustrated — a tool people can click through, or an analysis anyone can rerun from the source.
                     </p>
                     <p class="text-base lg:text-lg text-[#666666] leading-relaxed">
                         Source code for all demos is available on <a href="https://github.com/Yying-Zhou" target="_blank" class="underline hover:opacity-70">GitHub</a>.
@@ -132,7 +132,7 @@
                     <div class="demo-number text-6xl lg:text-7xl font-bold text-[#111111]">01</div>
                     <div class="text-right">
                         <p class="demo-meta text-sm font-medium text-[#4B4B4B] mb-1">2026</p>
-                        <p class="demo-meta text-sm text-[#666666]">Research Instrument</p>
+                        <p class="demo-meta text-sm text-[#666666]">Interactive Prototype</p>
                     </div>
                 </div>
 
@@ -151,7 +151,7 @@
                     </div>
                     <div class="space-y-8">
                         <div>
-                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">RESEARCH QUESTION</p>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">THE QUESTION</p>
                             <p class="demo-meta text-sm text-[#666666] leading-relaxed">Does the shift from 2D map to 3D immersive scene systematically surface different value types — in particular, wildlife habitat and spatially marginal values invisible in plan view?</p>
                         </div>
                         <div>
@@ -184,9 +184,68 @@
                 </div>
             </div>
 
+            <!-- Demo 02 -->
+            <div class="demo-item border-b border-black p-10 lg:p-16 cursor-pointer">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="demo-number text-6xl lg:text-7xl font-bold text-[#111111]">02</div>
+                    <div class="text-right">
+                        <p class="demo-meta text-sm font-medium text-[#4B4B4B] mb-1">2026</p>
+                        <p class="demo-meta text-sm text-[#666666]">Open-Data Study</p>
+                    </div>
+                </div>
+
+                <h3 class="demo-title text-2xl lg:text-3xl font-bold text-[#111111] mb-2 tracking-tight">
+                    Where Would a Co-living Intervention Actually Be Needed?
+                </h3>
+                <p class="demo-subtitle text-sm text-[#666666] mb-8 italic">
+                    Spatial Analysis / Open Data / Helsinki Region
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-10">
+                    <div>
+                        <p class="demo-desc text-base lg:text-lg text-[#5A5A5A] leading-relaxed mb-8">
+                            A map of the Helsinki region at 250-metre resolution, crossing structural loneliness risk against walking access to third places — the informal settings where unplanned social contact happens. It flags 686 cells holding roughly 64,000 residents, then argues that identifying the sites is where design work starts rather than where it finishes: three of the flagged areas turn out to need three incompatible interventions.
+                        </p>
+                    </div>
+                    <div class="space-y-8">
+                        <div>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">THE QUESTION</p>
+                            <p class="demo-meta text-sm text-[#666666] leading-relaxed">Where do the conditions for a shared-living intervention actually coincide — people structurally more exposed to isolation, living furthest from the places that produce everyday social contact?</p>
+                        </div>
+                        <div>
+                            <p class="demo-label text-sm font-bold text-[#111111] mb-3">TECHNICAL STACK</p>
+                            <p class="demo-meta text-sm text-[#666666] leading-relaxed">Python · GeoPandas · Statistics Finland Paavo &amp; population grid · Helsinki Region Travel Time Matrix · OpenStreetMap / Overpass · Leaflet · Static site, no build step</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="divider border-t border-black mb-10">
+
+                <div class="flex flex-wrap gap-3 mb-10">
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Spatial analysis</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Open data</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Housing &amp; wellbeing</span>
+                    <span class="tag-badge text-sm px-3 py-1 border border-black text-[#111111]">Data visualisation</span>
+                </div>
+
+                <div class="flex flex-wrap gap-4">
+                    <a href="loneliness-access/index.html"
+                       class="launch-btn inline-block px-6 py-3 border-2 border-black text-[#111111] font-bold text-base hover:bg-[#111111] hover:text-[#F8F9FA] transition-all"
+                       onclick="event.stopPropagation()">
+                        VIEW STUDY →
+                    </a>
+                    <a href="https://github.com/Yying-Zhou"
+                       target="_blank"
+                       class="launch-btn inline-block px-6 py-3 border-2 border-black text-[#111111] font-bold text-base hover:bg-[#111111] hover:text-[#F8F9FA] transition-all"
+                       onclick="event.stopPropagation()">
+                        VIEW ON GITHUB ↗
+                    </a>
+                </div>
+            </div>
+
             <!-- Placeholder for future demos -->
             <div class="p-10 lg:p-16">
-                <div class="demo-number text-6xl lg:text-7xl font-bold text-[#CCCCCC] mb-6">02</div>
+                <div class="demo-number text-6xl lg:text-7xl font-bold text-[#CCCCCC] mb-6">03</div>
                 <p class="text-lg text-[#CCCCCC]">Next demo in development.</p>
             </div>
 

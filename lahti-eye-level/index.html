@@ -109,6 +109,22 @@ footer a{color:var(--link)}
 .legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px}
 .legend i.dot{border-radius:50%; width:8px; height:8px; vertical-align:1px}
 .legend i.sq{border-radius:1px; width:9px; height:9px; vertical-align:0}
+.seg{display:inline-flex; border:1px solid var(--rule); border-radius:6px; overflow:hidden}
+.seg button{border:0; border-radius:0; background:var(--bg)}
+.seg button[aria-pressed="true"]{background:var(--fg); color:var(--bg)}
+.ci{position:absolute; top:50%; height:2px; background:var(--fg); opacity:.55; transform:translateY(-50%)}
+.forest{font-size:13.5px; margin:20px 0 6px}
+.forest .row{display:grid; grid-template-columns:minmax(120px,170px) 1fr 128px; align-items:center; gap:12px; height:30px}
+.forest .plot{position:relative; height:100%}
+.forest .ref{position:absolute; top:0; bottom:0; width:1px; background:var(--muted); opacity:.5}
+.forest .dot{position:absolute; top:50%; width:11px; height:11px; border-radius:50%; transform:translate(-50%,-50%);
+  background:var(--seq-3); border:2px solid var(--bg)}
+.forest .dot.ns{background:var(--bg); border:2px solid var(--seq-2)}
+.forest .v{color:var(--muted); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+@media (max-width:520px){ .forest .v .small{display:none} .forest .row,.forest .axis{grid-template-columns:110px 1fr 44px} }
+.forest .axis{display:grid; grid-template-columns:minmax(120px,170px) 1fr 128px; gap:12px; color:var(--muted); font-size:12px}
+.forest .axis .t{position:relative; height:16px}
+.forest .axis .t span{position:absolute; transform:translateX(-50%)}
 .panel{border:1px solid var(--rule); border-radius:6px; padding:20px 22px; background:var(--panel); align-self:start}
 .panel h4{margin:0 0 2px; font-size:19px; font-weight:650}
 .panel .where{font-size:13px; color:var(--muted); margin:0 0 14px}
@@ -202,6 +218,9 @@ maintenance class and register ID.</p>
   <div class="controls">
     <select id="pick" aria-label="Choose a pocket park"><option value="">Choose a pocket park…</option></select>
     <button id="reset" type="button">Whole city</button>
+    <span class="seg" role="group" aria-label="Colour parks by">
+      <button type="button" id="m-fb" aria-pressed="true">Feedback volume</button><button type="button" id="m-meadow" aria-pressed="false">Meadow debate</button>
+    </span>
   </div>
   <div class="explorer">
     <div>
@@ -214,6 +233,12 @@ maintenance class and register ID.</p>
         <span><i style="background:var(--seq-3)"></i>6–10</span>
         <span><i style="background:var(--seq-4)"></i>11–20</span>
         <span><i style="background:var(--seq-5)"></i>21+</span>
+      </div>
+      <div class="legend" id="legend-meadow" style="display:none">
+        <span><i style="background:var(--s-meadow)"></i>Low-intensity &amp; repeated mowing/overgrowth feedback</span>
+        <span><i style="background:var(--seq-2)"></i>Intensive &amp; repeated mowing/overgrowth feedback</span>
+        <span><i style="background:var(--s-other)"></i>Other parks with feedback</span>
+        <span><i style="background:var(--s-none)"></i>No feedback</span>
       </div>
       <div class="legend" id="legend-park">
         <span><i style="background:var(--s-shrubs)"></i>Shrub groups &amp; hedges</span>
@@ -254,6 +279,62 @@ maintenance. Keyword-matching the excerpts (in Finnish) shows what it is about:<
 these counts are lower bounds. Only counts are published here, never the texts or locations of
 individual items.</p>
 
+<h2><span class="n">4</span>What the data already suggests, and where it stops</h2>
+
+<p>Before building anything new, the existing data can test a simple idea: does the vegetation
+the city records go with what residents raise? For each pocket park I measured, from the
+register alone, how much of it is shrub groups, how much of its outer edge is lined with shrubs
+or hedges, how dense its mapped trees are, and how much is meadow or open view. The full text
+of the <b id="a-items">1,083</b> green-space feedback items within 50&nbsp;m of these parks
+was then keyword-coded by theme. Parks under 100&nbsp;m² are register fragments and are left out.</p>
+
+<h3>Finding 1 · Greener parks get more attention</h3>
+<p>Parks with more mapped trees receive more feedback than parks of the same size with the same
+number of homes nearby. Shrub-lined edges point the same way, though their interval just touches
+1. The register predicts <em>where</em> residents engage, and homes nearby matter most.</p>
+<div id="forestA" role="img" aria-label="Rate ratios for park features predicting the number of feedback items nearby"></div>
+<p class="small">Negative-binomial model of feedback items within 50&nbsp;m (<span id="a-n">389</span> parks).
+Dots are rate ratios per one standard deviation of each feature, with 95% intervals; above 1
+means more feedback. Darker dots have intervals that exclude 1. Distance to the city centre and
+street frontage are also in the model.</p>
+
+<h3>Finding 2 · Enclosure barely changes <em>what</em> people raise</h3>
+<p>About one item in four near a pocket park is about overgrowth, darkness or feeling unsafe.
+That share is almost the same whether a park has no shrub edge at all or is substantially
+framed by hedges:</p>
+<div class="bars" id="edgeBars" role="img" aria-label="Share of nearby feedback about overgrowth, darkness or safety, by shrub edge"></div>
+<p class="small">Pooled share of items mentioning overgrowth, darkness or safety (Finnish keyword
+match on the full text), with 95% interval. Edge share is the part of the park's outer boundary
+lined with shrub groups or hedges.</p>
+<div class="note">
+  <p><strong>A hint, not a finding.</strong> When shrub <em>area</em> and shrub <em>edge</em>
+  are modelled together, shrub mass inside a park goes with more of these concerns and hedges
+  along its edge with fewer. But the two measures are highly correlated (r&nbsp;=&nbsp;0.87),
+  and the estimate shifts depending on which small parks are included. Whether a shrub group
+  blocks a sightline or shelters a bench is exactly what a plan-view register cannot record.
+  That question needs data collected at eye level.</p>
+</div>
+
+<h3>Finding 3 · Meadow management is debated in a few dozen places</h3>
+<p>Most pocket parks are maintained at low intensity: meadows, buffer green and close-to-home
+forest. Near these parks, a larger share of feedback is about mowing or overgrowth:</p>
+<div class="bars" id="extBars" role="img" aria-label="Share of nearby feedback about mowing or overgrowth by maintenance intensity"></div>
+<p class="small">Share of nearby items mentioning mowing, grass, meadow or overgrowth, with 95% interval.
+"Low intensity" means at least half the park area is in classes A (meadow), M (forest) or R4
+(buffer green). After adjusting for the number of homes nearby, the difference is no longer
+statistically clear (odds ratio <span id="c-or">1.08</span>).</p>
+<p>The pattern is not city-wide, but it is concentrated: <b id="c-n">35</b> low-intensity parks
+have repeated mowing or overgrowth feedback. They are the obvious places to show residents a
+"what if" scene, for example a mown edge along a meadow or a thinned entrance, before
+changing anything. Switch the map to <a href="#map" id="toMeadow">meadow debate</a> to see them.</p>
+
+<div class="note">
+  <p><strong>What this adds up to.</strong> The city's 2D data shows <em>where</em> residents
+  engage and where management is contested. It cannot show <em>why</em> a particular shrub group
+  or meadow edge makes a place feel uncomfortable. The next step is to collect that at eye
+  level.</p>
+</div>
+
 <div class="note">
   <p><strong>The gap.</strong> A typical complaint might say <em>the bushes by the path are so
   overgrown it feels unsafe in the evening</em>. That sentence names a feeling and a rough place.
@@ -264,7 +345,7 @@ individual items.</p>
   <em>before</em> it is cut back.</p>
 </div>
 
-<h2><span class="n">4</span>A bridge: annotate at eye level, link to the asset</h2>
+<h2><span class="n">5</span>A bridge: annotate at eye level, link to the asset</h2>
 
 <p>The proposal is to let residents mark what they value or avoid directly in a photo-real 3D
 reconstruction of their own park, made with 3D Gaussian Splatting from ordinary phone photos.
@@ -355,13 +436,56 @@ ETRS-GK26 (EPSG:3880) to WGS84.</p>
   const fbColor = n => css(n===0?'--s-none':n<=2?'--seq-1':n<=5?'--seq-2':n<=10?'--seq-3':n<=20?'--seq-4':'--seq-5');
 
   function bars(el, rows, opts={}){
-    const max = Math.max(...rows.map(r=>r.v), 1);
-    el.innerHTML = rows.map(r => `
-      <div class="bar" title="${esc(r.label)}: ${fmt(r.v)}${opts.unit||''}">
-        <span class="lab">${esc(r.label)}</span>
-        <span class="track"><span class="fill ${r.mute?'mute':''}" style="width:${(r.v/max*82).toFixed(1)}%"></span>
-          <span class="val" style="left:${(r.v/max*82).toFixed(1)}%">${fmt(r.v)}</span></span>
-      </div>`).join('');
+    const max = opts.max || Math.max(...rows.map(r=>r.ci ? r.ci[1] : r.v), 1e-9);
+    const w = v => (v/max*82).toFixed(1);
+    const show = v => opts.pct ? pct(v) : fmt(v);
+    el.innerHTML = rows.map(r => {
+      const tip = `${r.label}: ${show(r.v)}${r.ci ? ` (95% interval ${pct(r.ci[0])}–${pct(r.ci[1])})` : ''}${r.note ? ' · ' + r.note : ''}${opts.unit||''}`;
+      const right = r.ci ? r.ci[1] : r.v;
+      return `<div class="bar" title="${esc(tip)}">
+        <span class="lab">${esc(r.label)}${r.sub ? `<br><span class="small">${esc(r.sub)}</span>` : ''}</span>
+        <span class="track"><span class="fill ${r.mute?'mute':''}" style="width:${w(r.v)}%"></span>
+          ${r.ci ? `<span class="ci" style="left:${w(r.ci[0])}%;width:${(w(r.ci[1])-w(r.ci[0])).toFixed(1)}%"></span>` : ''}
+          <span class="val" style="left:${w(right)}%">${show(r.v)}</span></span>
+      </div>`; }).join('');
+  }
+
+  function forest(el, rows){
+    // log-scale rate-ratio axis
+    const lo = Math.log(0.7), hi = Math.log(2.2);
+    const x = v => ((Math.log(v) - lo) / (hi - lo) * 100).toFixed(1);
+    const ticks = [0.8, 1, 1.25, 1.5, 2];
+    el.className = 'forest';
+    el.innerHTML = rows.map(r => {
+      const [est, a, b, pv] = r.v, sig = a > 1 || b < 1;
+      return `<div class="row" title="${esc(r.label)}: ${est.toFixed(2)} (95% interval ${a.toFixed(2)}–${b.toFixed(2)})">
+        <span>${esc(r.label)}</span>
+        <span class="plot"><span class="ref" style="left:${x(1)}%"></span>
+          <span class="ci" style="left:${x(a)}%;width:${(x(b)-x(a)).toFixed(1)}%"></span>
+          <span class="dot ${sig?'':'ns'}" style="left:${x(est)}%"></span></span>
+        <span class="v">${est.toFixed(2)} <span class="small">[${a.toFixed(2)}–${b.toFixed(2)}]</span></span></div>`;
+    }).join('') + `<div class="axis"><span></span><span class="t">${ticks.map(t=>`<span style="left:${x(t)}%">×${t}</span>`).join('')}</span><span></span></div>`;
+  }
+
+  function renderAnalysis(a){
+    document.getElementById('a-items').textContent = fmt(a.n_items_near);
+    document.getElementById('a-n').textContent = fmt(a.n_parks);
+    const A = a.A_volume_irr;
+    forest(document.getElementById('forestA'), [
+      ['log_dwell','Homes within 300 m'], ['log_area','Park size'], ['tree_density','Tree density'],
+      ['shrub_edge','Shrub-lined edge'], ['shrub_share','Shrub area'], ['meadow_share','Meadow share'],
+      ['open_share','Open views'], ['woodland_share','Woodland share']
+    ].map(([k,label]) => ({label, v:A[k]})));
+    const G = a.edge_groups;
+    bars(document.getElementById('edgeBars'), [['none','No shrub edge'],['some','Up to 10% of edge'],['high','Over 10% of edge']]
+      .map(([k,label]) => ({label, sub:`${fmt(G[k].parks)} parks · ${fmt(G[k].items)} items`, v:G[k].share, ci:G[k].ci})), {pct:true, max:.5});
+    const C = a.C_share_by_ext;
+    bars(document.getElementById('extBars'), [
+      {label:'Low intensity', sub:`${fmt(C.n_extensive)} parks · ${fmt(C.items_extensive)} items`, v:C.extensive, ci:C.extensive_ci},
+      {label:'Intensive', sub:`${fmt(C.n_intensive)} parks · ${fmt(C.items_intensive)} items`, v:C.intensive, ci:C.intensive_ci, mute:true}
+    ], {pct:true, max:.5});
+    document.getElementById('c-or').textContent = a.C_model_or.extensive_share[0].toFixed(2);
+    document.getElementById('c-n').textContent = fmt(a.C_quadrants.contested || 0);
   }
 
   // ---------- map ----------
@@ -372,7 +496,9 @@ ETRS-GK26 (EPSG:3880) to WGS84.</p>
   map.createPane('points'); map.getPane('points').style.zIndex = 430;
   const DETAIL_ZOOM = 16, DOT_ZOOM = 15;
 
-  let parksLayer, dotsLayer, compLayer, treeLayer, furnLayer, selected = null;
+  let parksLayer, dotsLayer, compLayer, treeLayer, furnLayer, selected = null, mode = 'fb', analysis = {parks:{}};
+  const QUAD = {contested:'--s-meadow', intensive_contested:'--seq-2', accepted:'--s-other', intensive_quiet:'--s-other', no_feedback:'--s-none'};
+  const parkColor = p => mode === 'meadow' ? css(QUAD[(analysis.parks[p.name]||{}).quadrant || 'no_feedback']) : fbColor(p.feedback50);
   const byName = {};
 
   function cityStyle(f){
@@ -380,22 +506,27 @@ ETRS-GK26 (EPSG:3880) to WGS84.</p>
     if (!p.pocket) return {color:css('--muted'), weight:.6, fillOpacity:.04, fillColor:css('--muted'), opacity:.5};
     const isSel = selected === p.name;
     return {color: isSel ? css('--accent') : css('--fg'), weight: isSel ? 3 : .6, opacity: isSel ? 1 : .55,
-            fillColor: fbColor(p.feedback50), fillOpacity: map.getZoom() >= DETAIL_ZOOM ? 0 : .85};
+            fillColor: parkColor(p), fillOpacity: map.getZoom() >= DETAIL_ZOOM ? 0 : .85};
   }
 
   function updateDetail(){
     const z = map.getZoom() >= DETAIL_ZOOM;
     [compLayer, treeLayer, furnLayer].forEach(l => { if (!l) return; z ? l.addTo(map) : l.remove(); });
-    document.getElementById('legend-city').style.display = z ? 'none' : 'flex';
+    document.getElementById('legend-city').style.display = z || mode !== 'fb' ? 'none' : 'flex';
+    document.getElementById('legend-meadow').style.display = z || mode !== 'meadow' ? 'none' : 'flex';
     document.getElementById('legend-park').style.display = z ? 'flex' : 'none';
     if (parksLayer) parksLayer.setStyle(cityStyle);
     if (dotsLayer){ map.getZoom() < DOT_ZOOM ? dotsLayer.addTo(map) : dotsLayer.remove();
-      dotsLayer.eachLayer(l => l.setStyle(dotStyle(l.feature.properties))); }
+      dotsLayer.eachLayer(l => l.setStyle(dotStyle(l.feature.properties)));
+      if (mode === 'meadow') dotsLayer.eachLayer(l => {
+        const q = (analysis.parks[l.feature.properties.name]||{}).quadrant;
+        if (q === 'contested' || q === 'intensive_contested') l.bringToFront(); });
+      else dotsLayer.eachLayer(l => { if (l.feature.properties.feedback50 > 10) l.bringToFront(); }); }
   }
   function dotStyle(p){
     const isSel = selected === p.name;
     return {radius: isSel ? 9 : 6, color: isSel ? css('--accent') : css('--bg'), weight: isSel ? 3 : 1.5,
-            fillColor: fbColor(p.feedback50), fillOpacity: 1};
+            fillColor: parkColor(p), fillOpacity: 1};
   }
   map.on('zoomend', updateDetail);
 
@@ -424,6 +555,10 @@ ETRS-GK26 (EPSG:3880) to WGS84.</p>
         <dt>Main class</dt><dd>${esc(p.rams || '–')}</dd>
         <dt>Homes ≤300 m</dt><dd>${fmt(p.dwellings300)} dwellings</dd>
         <dt>Feedback ≤50 m</dt><dd><b>${fmt(p.feedback50)}</b> green-space items</dd>
+        ${(m => m ? `<dt>Shrub-lined edge</dt><dd>${pct(m.shrub_edge)} of the outline</dd>
+        <dt>Low-intensity area</dt><dd>${pct(m.extensive_share)}</dd>
+        <dt>Overgrowth / dark / unsafe</dt><dd>${fmt(m.fb_enclosure)} of ${fmt(m.fb_n)} items</dd>
+        <dt>Mowing / overgrowth</dt><dd>${fmt(m.fb_mow_over)} items${m.quadrant==='contested' ? ' · <b>meadow debate</b>' : ''}</dd>` : '')(analysis.parks[p.name])}
       </dl>
       ${themes.length ? `<div class="small">Most frequent themes nearby</div>
         <div class="chips">${themes.map(([t,n])=>`<span>${esc(t)} · ${n}</span>`).join('')}</div>` : ''}`;
@@ -450,10 +585,24 @@ ETRS-GK26 (EPSG:3880) to WGS84.</p>
   };
   document.getElementById('pick').onchange = e => e.target.value ? selectPark(e.target.value) : null;
 
+  function setMode(m){
+    mode = m;
+    document.getElementById('m-fb').setAttribute('aria-pressed', m === 'fb');
+    document.getElementById('m-meadow').setAttribute('aria-pressed', m === 'meadow');
+    if (map.getZoom() >= DOT_ZOOM && !selected) map.fitBounds(parksLayer.getBounds(), {padding:[16,16]});
+    updateDetail();
+  }
+  document.getElementById('m-fb').onclick = () => setMode('fb');
+  document.getElementById('m-meadow').onclick = () => setMode('meadow');
+  document.getElementById('toMeadow').onclick = e => { e.preventDefault(); setMode('meadow');
+    document.getElementById('map').scrollIntoView({behavior:'smooth', block:'center'}); };
+
   Promise.all([
     fetch('data/summary.json').then(r=>r.json()),
-    fetch('data/parks.geojson').then(r=>r.json())
-  ]).then(([s, parks]) => {
+    fetch('data/parks.geojson').then(r=>r.json()),
+    fetch('data/analysis.json').then(r=>r.json()).catch(()=>null)
+  ]).then(([s, parks, an]) => {
+    if (an){ analysis = an; renderAnalysis(an); }
     // stats
     document.getElementById('stats').innerHTML = `
       <div class="stat"><b>${fmt(s.components)}</b><span>green-area polygons in the register: lawns, meadows, shrub groups, paths</span></div>

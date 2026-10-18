@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lahti at Eye Level</title>
+<meta name="description" content="What the City of Lahti records about its pocket parks, what residents tell it, and a 3D participatory method that links the two.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1a1a1a; --muted:#5c5c5c; --rule:#e2e2e2;
+  --accent:#c2185b; --panel:#f7f7f8; --link:#7a1140;
+  --maxw:820px;
+  /* chart roles (validated: 3 categorical slots, all-pairs) */
+  --s-shrubs:#2a78d6; --s-meadow:#eb6834; --s-lawn:#1baf7a; --s-other:#c9c8c3;
+  --seq-1:#b7d3f6; --seq-2:#6da7ec; --seq-3:#2a78d6; --seq-4:#184f95; --seq-5:#0d366b;
+  --s-none:#e6e5e0; --tree:#3d3d3a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131315; --fg:#ececec; --muted:#a3a3a3; --rule:#2c2c30;
+    --accent:#ff7aa8; --panel:#1c1c20; --link:#ff9ebd;
+    --s-shrubs:#3987e5; --s-meadow:#d95926; --s-lawn:#199e70; --s-other:#4a4a46;
+    --seq-1:#184f95; --seq-2:#256abf; --seq-3:#3987e5; --seq-4:#6da7ec; --seq-5:#b7d3f6;
+    --s-none:#383835; --tree:#d6d5cf;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131315; --fg:#ececec; --muted:#a3a3a3; --rule:#2c2c30;
+  --accent:#ff7aa8; --panel:#1c1c20; --link:#ff9ebd;
+  --s-shrubs:#3987e5; --s-meadow:#d95926; --s-lawn:#199e70; --s-other:#4a4a46;
+  --seq-1:#184f95; --seq-2:#256abf; --seq-3:#3987e5; --seq-4:#6da7ec; --seq-5:#b7d3f6;
+  --s-none:#383835; --tree:#d6d5cf;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+.wide{max-width:1120px; margin:0 auto; padding:0 22px}
+header{padding:64px 0 40px; border-bottom:1px solid var(--rule); margin-bottom:44px}
+.back{font-size:14px; margin:0 0 26px}
+.kicker{font-size:12.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); margin:0 0 18px}
+h1{font-size:clamp(28px,4.4vw,42px); line-height:1.16; margin:0 0 18px; font-weight:650; letter-spacing:-.02em}
+.standfirst{font-size:19px; color:var(--muted); margin:0 0 26px; max-width:62ch}
+.byline{font-size:14px; color:var(--muted)}
+.byline a{color:var(--link)}
+h2{font-size:23px; margin:56px 0 14px; font-weight:640; letter-spacing:-.01em}
+h2 .n{color:var(--accent); margin-right:8px}
+h3{font-size:17px; margin:32px 0 8px; font-weight:640}
+p{margin:0 0 17px; max-width:68ch}
+a{color:var(--link)}
+.lede{font-size:17.5px}
+.small{font-size:14px; color:var(--muted)}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+  background:var(--rule); border:1px solid var(--rule); border-radius:6px; overflow:hidden; margin:34px 0}
+.stat{background:var(--bg); padding:20px 18px}
+@media (max-width:620px){ .stats{grid-template-columns:repeat(2,1fr)} }
+.stat b{display:block; font-size:29px; font-weight:650; letter-spacing:-.02em; line-height:1.15}
+.stat span{display:block; font-size:13px; color:var(--muted); margin-top:6px; line-height:1.4}
+.stat.hl b{color:var(--accent)}
+.note{background:var(--panel); border-left:3px solid var(--accent); padding:18px 20px;
+  border-radius:0 6px 6px 0; margin:30px 0}
+.note p:last-child{margin-bottom:0}
+.note strong{color:var(--accent)}
+ul,ol{max-width:68ch; padding-left:22px}
+li{margin-bottom:7px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13.5px;
+  background:var(--panel); padding:1px 5px; border-radius:3px}
+table{width:100%; border-collapse:collapse; font-size:14.5px; margin:22px 0}
+th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--rule)}
+th{font-weight:640; color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.05em}
+td.num,th.num{text-align:right; font-variant-numeric:tabular-nums}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:var(--panel)}
+.scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+footer{border-top:1px solid var(--rule); margin-top:64px; padding:32px 0 72px; font-size:14px; color:var(--muted)}
+footer a{color:var(--link)}
+
+/* bar charts (HTML) */
+.bars{margin:22px 0 8px; display:grid; gap:6px}
+.bar{display:grid; grid-template-columns:minmax(120px,210px) 1fr; align-items:center; gap:12px; font-size:14px}
+.bar .lab{color:var(--fg); line-height:1.25}
+.bar .track{position:relative; height:22px}
+.bar .fill{display:block; height:100%; border-radius:0 4px 4px 0; background:var(--seq-3); min-width:2px}
+.bar .fill.mute{background:var(--s-other)}
+.bar .val{position:absolute; top:0; line-height:22px; font-size:13px; color:var(--muted);
+  font-variant-numeric:tabular-nums; padding-left:6px; white-space:nowrap}
+.bar:hover .fill{filter:brightness(1.12)}
+
+/* explorer */
+.explorer{display:grid; grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr); gap:18px; margin:26px 0 8px}
+@media (max-width:860px){ .explorer{grid-template-columns:1fr} }
+#map{height:560px; border:1px solid var(--rule); border-radius:6px; z-index:0}
+@media (max-width:860px){ #map{height:420px} }
+.leaflet-container{background:var(--panel); font:inherit}
+.leaflet-tile-pane{filter:grayscale(1) brightness(1.12) contrast(.72)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.85) contrast(.9)} }
+:root[data-theme="dark"] .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.85) contrast(.9)}
+.leaflet-tooltip{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+.controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:18px 0 0}
+.controls select{font:inherit; font-size:14.5px; padding:7px 10px; border:1px solid var(--rule);
+  border-radius:6px; background:var(--bg); color:var(--fg); max-width:100%}
+.controls button{font:inherit; font-size:14px; padding:7px 12px; border:1px solid var(--rule);
+  border-radius:6px; background:var(--panel); color:var(--fg); cursor:pointer}
+.legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:13px; color:var(--muted); margin:10px 0 0}
+.legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px}
+.legend i.dot{border-radius:50%; width:8px; height:8px; vertical-align:1px}
+.legend i.sq{border-radius:1px; width:9px; height:9px; vertical-align:0}
+.panel{border:1px solid var(--rule); border-radius:6px; padding:20px 22px; background:var(--panel); align-self:start}
+.panel h4{margin:0 0 2px; font-size:19px; font-weight:650}
+.panel .where{font-size:13px; color:var(--muted); margin:0 0 14px}
+.panel dl{display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin:14px 0; font-size:14px}
+.panel dt{color:var(--muted)}
+.panel dd{margin:0}
+.panel .empty{color:var(--muted); font-size:15px}
+.stack{display:flex; gap:2px; height:16px; margin:8px 0 6px}
+.stack span{height:100%}
+.stack span:first-child{border-radius:4px 0 0 4px}
+.stack span:last-child{border-radius:0 4px 4px 0}
+.stack-lab{display:flex; flex-wrap:wrap; gap:4px 12px; font-size:12.5px; color:var(--muted)}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.chips span{font-size:12.5px; border:1px solid var(--rule); border-radius:999px; padding:1px 9px; background:var(--bg)}
+
+/* flow diagram */
+.flow{display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin:30px 0}
+@media (max-width:760px){ .flow{grid-template-columns:1fr} }
+.step{position:relative; border:1px solid var(--rule); background:var(--panel); padding:16px 16px 18px; margin-right:22px}
+.step:last-child{margin-right:0}
+.step:not(:last-child)::after{content:"→"; position:absolute; right:-19px; top:50%; transform:translateY(-50%);
+  color:var(--accent); font-weight:700}
+@media (max-width:760px){
+  .step{margin:0 0 22px} .step:last-child{margin:0}
+  .step:not(:last-child)::after{content:"↓"; right:auto; left:50%; top:auto; bottom:-22px; transform:translateX(-50%)}
+}
+.step .k{font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px}
+.step .t{font-weight:640; font-size:15px; margin:0 0 6px; line-height:1.3}
+.step .d{font-size:13.5px; color:var(--muted); margin:0; line-height:1.45}
+.step code{font-size:12px}
+.cta{display:inline-block; margin:6px 0 0; padding:10px 16px; border:2px solid var(--fg); color:var(--fg);
+  font-weight:700; text-decoration:none; font-size:14.5px}
+.cta:hover{background:var(--fg); color:var(--bg)}
+body.embed header{display:none}
+body.embed .wrap{padding-top:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="back small"><a href="../demos.html">← All demos</a></p>
+    <p class="kicker">Open-data study · Lahti, Finland</p>
+    <h1>What a city knows about its pocket parks, and what it can't see</h1>
+    <p class="standfirst">Lahti maps every lawn, shrub group and tree it maintains. It also collects
+      thousands of resident complaints and suggestions. Nothing connects the two. This page shows
+      both datasets and proposes a 3D participatory method to bridge them.</p>
+    <p class="byline">Yingying Zhou · <span id="date">2026</span> ·
+      <a href="#data">data &amp; code</a> · <a href="../ppgis-demo/instrument.html">annotation instrument</a></p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<p class="lede">Small parks are the green space most people actually pass every day. They are also
+where design details matter most: a dense hedge can shelter birds and block the view of an
+entrance, and an unmown meadow can read as biodiversity to one resident and as neglect to another.
+These are the questions a city has to answer park by park, and the data it would need is
+mostly already there.</p>
+
+<p>All figures below come from two public services of the City of Lahti, downloaded in October 2026:
+the <b>map service</b>, whose green-area register is published at component level, and the
+<b>resident feedback service</b>. Nothing here needed a login.</p>
+
+<div class="stats" id="stats"></div>
+
+<h2><span class="n">1</span>The city's register is remarkably fine-grained</h2>
+
+<p>Lahti does not record a park as a single green blob. It records each lawn, meadow, shrub group,
+perennial bed and gravel path as a separate polygon, tagged with a maintenance class that tells the
+contractor how often to mow, prune or clear it. Each tree and shrub is also a point with its species.
+Of the city's named parks, most are small:</p>
+
+<div class="bars" id="sizes" role="img" aria-label="Number of named parks by size class"></div>
+<p class="small">Named parks in the green-area register by total component area. Blue marks the
+pocket-park range (under 5,000&nbsp;m²) used throughout this page.</p>
+
+</div>
+
+<div class="wide">
+  <h2 class="wrap" style="padding:0"><span class="n">2</span>Explore a pocket park</h2>
+</div>
+<div class="wrap">
+<p>Each pocket park on the map is shaded by how much <b>green-space feedback</b> residents have
+placed within about 50&nbsp;m of it. Click a park, or pick one below, to zoom in. Close up, the
+park breaks into the polygons the city maintains. Hover over any of them to see the asset type,
+maintenance class and register ID.</p>
+</div>
+
+<div class="wide">
+  <div class="controls">
+    <select id="pick" aria-label="Choose a pocket park"><option value="">Choose a pocket park…</option></select>
+    <button id="reset" type="button">Whole city</button>
+  </div>
+  <div class="explorer">
+    <div>
+      <div id="map" role="region" aria-label="Map of Lahti pocket parks"></div>
+      <div class="legend" id="legend-city">
+        <span>Feedback within 50 m:</span>
+        <span><i style="background:var(--s-none)"></i>0</span>
+        <span><i style="background:var(--seq-1)"></i>1–2</span>
+        <span><i style="background:var(--seq-2)"></i>3–5</span>
+        <span><i style="background:var(--seq-3)"></i>6–10</span>
+        <span><i style="background:var(--seq-4)"></i>11–20</span>
+        <span><i style="background:var(--seq-5)"></i>21+</span>
+      </div>
+      <div class="legend" id="legend-park">
+        <span><i style="background:var(--s-shrubs)"></i>Shrub groups &amp; hedges</span>
+        <span><i style="background:var(--s-meadow)"></i>Meadow</span>
+        <span><i style="background:var(--s-lawn)"></i>Lawn</span>
+        <span><i style="background:var(--s-other)"></i>Paths, beds, other</span>
+        <span><i class="dot" style="background:var(--tree)"></i>Mapped plant</span>
+        <span><i class="sq" style="background:var(--fg)"></i>Bench</span>
+      </div>
+      <p class="small" style="margin-top:8px">Basemap © OpenStreetMap contributors. Park data © City of Lahti.</p>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite">
+      <p class="empty">Select a park to see what the city records about it, and what residents have reported nearby.</p>
+    </aside>
+  </div>
+</div>
+
+<div class="wrap">
+
+<h3>A possible pilot shortlist</h3>
+<p>These are the pocket parks with the most green-space feedback nearby, which makes them a natural
+first sample: residents already care, and there is an independent record to validate against.
+Click a row to open the park.</p>
+<div class="scroll"><table id="shortlist">
+  <thead><tr><th>Park</th><th>District</th><th class="num">Area m²</th>
+    <th class="num">Feedback ≤50 m</th><th class="num">Homes ≤300 m</th><th class="num">Plants</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+
+<h2><span class="n">3</span>What residents tell the city</h2>
+
+<p id="fb-intro">Lahti publishes resident feedback with a category, a short excerpt and the city's
+handling status. Many items are pinned to a map. Most green-space feedback is about
+maintenance. Keyword-matching the excerpts (in Finnish) shows what it is about:</p>
+
+<div class="bars" id="themes" role="img" aria-label="Green-space feedback by theme"></div>
+<p class="small">Items can match more than one theme. Excerpts are about 150 characters long, so
+these counts are lower bounds. Only counts are published here, never the texts or locations of
+individual items.</p>
+
+<div class="note">
+  <p><strong>The gap.</strong> A typical complaint might say <em>the bushes by the path are so
+  overgrown it feels unsafe in the evening</em>. That sentence names a feeling and a rough place.
+  The maintenance contractor works from a specific shrub-group polygon with its own register ID and
+  maintenance class.
+  Someone has to translate one into the other by hand, and often nobody does. The
+  translation also only ever runs one way: residents are rarely asked about the shrub group
+  <em>before</em> it is cut back.</p>
+</div>
+
+<h2><span class="n">4</span>A bridge: annotate at eye level, link to the asset</h2>
+
+<p>The proposal is to let residents mark what they value or avoid directly in a photo-real 3D
+reconstruction of their own park, made with 3D Gaussian Splatting from ordinary phone photos.
+Each mark is then linked automatically to the city's own register:</p>
+
+<div class="flow">
+  <div class="step"><p class="k">1 · Capture</p><p class="t">Phone photos → 3D scene</p>
+    <p class="d">About 30 minutes on site. The scene is aligned to the city's survey control points, so it shares the register's coordinates.</p></div>
+  <div class="step"><p class="k">2 · Annotate</p><p class="t">Residents mark values at eye level</p>
+    <p class="d">Recreation, aesthetics, wildlife habitat or avoidance, plus a short note.</p></div>
+  <div class="step"><p class="k">3 · Link</p><p class="t">Each mark snaps to an asset</p>
+    <p class="d">e.g. <code>avoidance → shrub group #… · class R3</code> or <code>habitat → landscape meadow #…</code>.</p></div>
+  <div class="step"><p class="k">4 · Act</p><p class="t">An "asset value layer" for maintenance</p>
+    <p class="d">Value and avoidance counts per polygon, tree and bench, loaded directly into the city's GIS.</p></div>
+</div>
+
+<p>Two things become possible that neither dataset allows alone. First, <b>design changes can be
+tested before they are made</b>. The same scene can be edited to show a lawn turned into meadow, or
+a shrub group thinned at an entrance, so residents respond before any work is ordered. Second,
+<b>the method can be validated</b>. If 3D annotations are more informative than 2D ones, they
+should predict the independent feedback record and observed park use better.</p>
+
+<p><a class="cta" href="../ppgis-demo/instrument.html">Try the annotation instrument →</a></p>
+
+<h2>What this is and is not</h2>
+<ul>
+  <li><strong>Feedback is a signal of concern, not of prevalence.</strong> People who send
+    feedback are not a representative sample. A park with no feedback may simply have quiet
+    neighbours.</li>
+  <li><strong>"Within 50&nbsp;m" is an approximation.</strong> Points are counted inside a 50&nbsp;m
+    buffer around each park outline. Busy streets next to a park pull in feedback about the
+    street.</li>
+  <li><strong>Themes are keyword matches on short excerpts.</strong> They are indicative only. A
+    real analysis would read the full texts and the city's replies.</li>
+  <li><strong>Homes within 300&nbsp;m</strong> are dwellings in the building register within
+    300&nbsp;m of the park outline, a rough catchment in the spirit of the 3‑30‑300 green-space
+    rule.</li>
+  <li><strong>The register shows what the city maintains, not how a place feels.</strong> That is
+    the point of the proposal.</li>
+</ul>
+
+<h2 id="data">Data and code</h2>
+<ul>
+  <li><a href="https://lahti.asiointi.fi/ims/fi/Map">Lahden karttapalvelu</a>, City of Lahti map
+    service. Layers used: green areas (Viheralueet), vegetation (Kasvillisuus), bins and benches,
+    buildings, districts.</li>
+  <li><a href="https://lahti.asiointi.fi/eFeedback/fi/PublicSearch">Lahden palautepalvelu</a>,
+    published resident feedback (list-level fields only).</li>
+  <li>Basemap © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</li>
+</ul>
+<p>Every step is scripted in Python (requests, pyproj, shapely): download the map layers, download
+the published feedback, then build the small files this page loads. Coordinates are converted from
+ETRS-GK26 (EPSG:3880) to WGS84.</p>
+
+</div>
+
+<footer><div class="wrap">
+  Yingying (Kerry) Zhou · built with public data and open-source tooling ·
+  <a href="../demos.html">more demos</a>
+</div></footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+  document.getElementById('date').textContent =
+    new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmt = n => Number(n).toLocaleString('en-GB');
+  const pct = n => Math.round(n*100) + '%';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // English glosses for the most common register classes
+  const EN = {
+    'Käyttönurmikko':'use lawn','Pensasryhmä':'shrub group','Käyttöniitty':'use meadow',
+    'Kivituhkakäytävä':'stone-dust path','Maisemaniitty':'landscape meadow','Piennarniitto':'verge meadow',
+    'Luonnonkivialue':'natural-stone paving','Perennaryhmä':'perennial bed','Kivituhka-alue':'stone-dust area',
+    'Avoimet alueet, näkymät':'open area / view','Lähimetsä':'close-to-home forest','Betonikivialue':'concrete paving',
+    'Kuorikatealue':'bark mulch','Kivituhkakenttä':'stone-dust field','Oja':'ditch','Sora-alue':'gravel area',
+    'Portaat':'steps','Asfalttialue':'asphalt area','Leikattu pensasaita':'clipped hedge','Asfalttikäytävä':'asphalt path',
+    'Hulevesiallas':'stormwater basin','Sorakäytävä':'gravel path','Hiekka':'sand','Arvoniitty':'valuable meadow',
+    'Reunaniitto':'edge meadow','Kesäkukkaryhmä':'annual bed','Polku':'footpath','Ryhmäruusu':'rose bed',
+    'Kosteikko':'wetland','Kasvimaa':'vegetable plot','Lampi':'pond','Lammikko':'pool','Metsä':'forest'
+  };
+  const GLABEL = {shrubs:'Shrub groups & hedges', meadow:'Meadow', lawn:'Lawn', other:'Paths, beds, other'};
+  const gcolor = g => css({shrubs:'--s-shrubs', meadow:'--s-meadow', lawn:'--s-lawn'}[g] || '--s-other');
+  const fbColor = n => css(n===0?'--s-none':n<=2?'--seq-1':n<=5?'--seq-2':n<=10?'--seq-3':n<=20?'--seq-4':'--seq-5');
+
+  function bars(el, rows, opts={}){
+    const max = Math.max(...rows.map(r=>r.v), 1);
+    el.innerHTML = rows.map(r => `
+      <div class="bar" title="${esc(r.label)}: ${fmt(r.v)}${opts.unit||''}">
+        <span class="lab">${esc(r.label)}</span>
+        <span class="track"><span class="fill ${r.mute?'mute':''}" style="width:${(r.v/max*82).toFixed(1)}%"></span>
+          <span class="val" style="left:${(r.v/max*82).toFixed(1)}%">${fmt(r.v)}</span></span>
+      </div>`).join('');
+  }
+
+  // ---------- map ----------
+  const map = L.map('map',{scrollWheelZoom:false, zoomSnap:.5}).setView([60.983,25.66],12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom:19}).addTo(map);
+  map.createPane('detail'); map.getPane('detail').style.zIndex = 420;
+  map.createPane('points'); map.getPane('points').style.zIndex = 430;
+  const DETAIL_ZOOM = 16, DOT_ZOOM = 15;
+
+  let parksLayer, dotsLayer, compLayer, treeLayer, furnLayer, selected = null;
+  const byName = {};
+
+  function cityStyle(f){
+    const p = f.properties;
+    if (!p.pocket) return {color:css('--muted'), weight:.6, fillOpacity:.04, fillColor:css('--muted'), opacity:.5};
+    const isSel = selected === p.name;
+    return {color: isSel ? css('--accent') : css('--fg'), weight: isSel ? 3 : .6, opacity: isSel ? 1 : .55,
+            fillColor: fbColor(p.feedback50), fillOpacity: map.getZoom() >= DETAIL_ZOOM ? 0 : .85};
+  }
+
+  function updateDetail(){
+    const z = map.getZoom() >= DETAIL_ZOOM;
+    [compLayer, treeLayer, furnLayer].forEach(l => { if (!l) return; z ? l.addTo(map) : l.remove(); });
+    document.getElementById('legend-city').style.display = z ? 'none' : 'flex';
+    document.getElementById('legend-park').style.display = z ? 'flex' : 'none';
+    if (parksLayer) parksLayer.setStyle(cityStyle);
+    if (dotsLayer){ map.getZoom() < DOT_ZOOM ? dotsLayer.addTo(map) : dotsLayer.remove();
+      dotsLayer.eachLayer(l => l.setStyle(dotStyle(l.feature.properties))); }
+  }
+  function dotStyle(p){
+    const isSel = selected === p.name;
+    return {radius: isSel ? 9 : 6, color: isSel ? css('--accent') : css('--bg'), weight: isSel ? 3 : 1.5,
+            fillColor: fbColor(p.feedback50), fillOpacity: 1};
+  }
+  map.on('zoomend', updateDetail);
+
+  function panel(p){
+    const el = document.getElementById('panel');
+    if (!p){ el.innerHTML = '<p class="empty">Select a park to see what the city records about it, and what residents have reported nearby.</p>'; return; }
+    const s = p.share || {};
+    const groups = [['shrubs',s.shrubs||0],['meadow',s.meadow||0],['lawn',s.lawn||0]];
+    const other = Math.max(0, 1 - groups.reduce((a,[,v])=>a+v,0));
+    groups.push(['other', other]);
+    const segs = groups.filter(([,v])=>v>0.005);
+    const themes = Object.entries(p.fb_themes||{});
+    el.innerHTML = `
+      <h4>${esc(p.name)}</h4>
+      <p class="where">${esc(p.district || 'Lahti')} · ${fmt(p.area)} m² · maintenance contract: ${esc(p.contract||'–')}</p>
+      <div class="small">What the park is made of (share of area)</div>
+      <div class="stack" role="img" aria-label="Composition: ${segs.map(([g,v])=>GLABEL[g]+' '+pct(v)).join(', ')}">
+        ${segs.map(([g,v])=>`<span title="${GLABEL[g]}: ${pct(v)}" style="width:${v*100}%;background:${gcolor(g)}"></span>`).join('')}
+      </div>
+      <div class="stack-lab">${segs.map(([g,v])=>`<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${gcolor(g)};margin-right:4px"></i>${GLABEL[g]} ${pct(v)}</span>`).join('')}</div>
+      <dl>
+        <dt>Shrub groups</dt><dd>${fmt(p.shrub_n)} polygons</dd>
+        <dt>Mapped plants</dt><dd>${fmt(p.plants)} · ${fmt(p.species)} species</dd>
+        <dt>Most common</dt><dd>${p.top_species && p.top_species.length ? esc(p.top_species.join(', ')) : '–'}</dd>
+        <dt>Benches · bins</dt><dd>${fmt(p.benches)} · ${fmt(p.bins)}</dd>
+        <dt>Main class</dt><dd>${esc(p.rams || '–')}</dd>
+        <dt>Homes ≤300 m</dt><dd>${fmt(p.dwellings300)} dwellings</dd>
+        <dt>Feedback ≤50 m</dt><dd><b>${fmt(p.feedback50)}</b> green-space items</dd>
+      </dl>
+      ${themes.length ? `<div class="small">Most frequent themes nearby</div>
+        <div class="chips">${themes.map(([t,n])=>`<span>${esc(t)} · ${n}</span>`).join('')}</div>` : ''}`;
+  }
+
+  function selectPark(name, zoom=true){
+    const f = byName[name]; if (!f) return;
+    selected = name;
+    document.getElementById('pick').value = name;
+    panel(f.feature.properties);
+    if (zoom){
+      const b = f.getBounds();
+      map.fitBounds(b, {padding:[30,30], maxZoom:18});
+      if (map.getZoom() < DETAIL_ZOOM) map.setZoom(DETAIL_ZOOM);
+    }
+    parksLayer.setStyle(cityStyle);
+    if (dotsLayer) dotsLayer.eachLayer(l => l.setStyle(dotStyle(l.feature.properties)));
+    if (innerWidth < 860) document.getElementById('map').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  document.getElementById('reset').onclick = () => {
+    selected = null; panel(null); document.getElementById('pick').value = '';
+    map.fitBounds(parksLayer.getBounds(), {padding:[16,16]});
+  };
+  document.getElementById('pick').onchange = e => e.target.value ? selectPark(e.target.value) : null;
+
+  Promise.all([
+    fetch('data/summary.json').then(r=>r.json()),
+    fetch('data/parks.geojson').then(r=>r.json())
+  ]).then(([s, parks]) => {
+    // stats
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><b>${fmt(s.components)}</b><span>green-area polygons in the register: lawns, meadows, shrub groups, paths</span></div>
+      <div class="stat"><b>${fmt(s.plants)}</b><span>individually mapped trees, shrubs and plantings</span></div>
+      <div class="stat hl"><b>${fmt(s.pocket_parks)}</b><span>pocket parks under 5,000 m², of ${fmt(s.parks)} named parks</span></div>
+      <div class="stat"><b>${fmt(s.meadow_polygons)}</b><span>polygons managed as meadow (classes A1–A3)</span></div>
+      <div class="stat"><b>${fmt(s.feedback_total)}</b><span>published resident feedback items${s.feedback_years[0]?`, ${s.feedback_years[0]}–${s.feedback_years[1]}`:''}</span></div>
+      <div class="stat hl"><b>${fmt(s.feedback_green)}</b><span>of them about parks, green areas and their maintenance</span></div>`;
+
+    const order = ['<2,000 m²','2,000–5,000','5,000–10,000','1–5 ha','>5 ha'];
+    bars(document.getElementById('sizes'), order.map(k=>({label:k, v:s.park_sizes[k]||0, mute:!(k.startsWith('<')||k.startsWith('2,'))})), {unit:' parks'});
+
+    const th = Object.entries(s.themes).map(([label,v])=>({label,v})).sort((a,b)=>b.v-a.v);
+    if (s.feedback_green) bars(document.getElementById('themes'), th, {unit:' items'});
+    else document.getElementById('themes').innerHTML = '<p class="small">Feedback data not yet built.</p>';
+
+    // shortlist
+    document.querySelector('#shortlist tbody').innerHTML = s.shortlist.slice(0,10).map(p=>`
+      <tr class="click" data-name="${esc(p.name)}" tabindex="0">
+        <td>${esc(p.name)}</td><td>${esc(p.district)}</td>
+        <td class="num">${fmt(p.area)}</td><td class="num">${fmt(p.feedback50)}</td>
+        <td class="num">${fmt(p.dwellings300)}</td><td class="num">${fmt(p.plants)}</td></tr>`).join('');
+    document.querySelectorAll('#shortlist tr.click').forEach(tr => {
+      const go = () => { selectPark(tr.dataset.name); document.getElementById('map').scrollIntoView({behavior:'smooth', block:'center'}); };
+      tr.onclick = go; tr.onkeydown = e => { if (e.key==='Enter') go(); };
+    });
+
+    // parks layer
+    parksLayer = L.geoJSON(parks, {
+      style: cityStyle,
+      onEachFeature: (f, l) => {
+        const p = f.properties;
+        if (!p.pocket){ l.bindTooltip(`${esc(p.name)} · ${fmt(p.area)} m² (larger park)`, {sticky:true}); return; }
+        byName[p.name] = l;
+        l.bindTooltip(`<b>${esc(p.name)}</b><br>${fmt(p.area)} m² · ${fmt(p.feedback50)} feedback nearby`, {sticky:true});
+        l.on('click', () => selectPark(p.name));
+      }
+    }).addTo(map);
+    // city-scale dots for pocket parks (polygons are too small to see below zoom 15)
+    map.createPane('dots'); map.getPane('dots').style.zIndex = 440;
+    const dots = {type:'FeatureCollection', features: parks.features.filter(f=>f.properties.pocket).map(f=>{
+      const c = L.geoJSON(f).getBounds().getCenter();
+      return {type:'Feature', properties:f.properties, geometry:{type:'Point', coordinates:[c.lng,c.lat]}};
+    }).sort((a,b)=>a.properties.feedback50-b.properties.feedback50)};
+    dotsLayer = L.geoJSON(dots, {
+      pointToLayer: (f, ll) => L.circleMarker(ll, {pane:'dots', ...dotStyle(f.properties)}),
+      onEachFeature: (f, l) => {
+        const p = f.properties;
+        l.bindTooltip(`<b>${esc(p.name)}</b><br>${fmt(p.area)} m² · ${fmt(p.feedback50)} feedback nearby`);
+        l.on('click', () => selectPark(p.name));
+      }});
+    updateDetail();
+    const pick = document.getElementById('pick');
+    Object.keys(byName).sort((a,b)=>a.localeCompare(b,'fi')).forEach(n=>{
+      const o = document.createElement('option'); o.value = n; o.textContent = n; pick.appendChild(o);
+    });
+
+    const el = document.getElementById('map');
+    const fit = () => { if (el.clientWidth < 50) return false; map.invalidateSize();
+      map.fitBounds(parksLayer.getBounds(), {padding:[16,16]}); return true; };
+    if (!fit() && 'ResizeObserver' in window){ const ro = new ResizeObserver(()=>{ if (fit()) ro.disconnect(); }); ro.observe(el); }
+
+    // detail layers (loaded after the overview is visible)
+    return Promise.all([
+      fetch('data/components.geojson').then(r=>r.json()),
+      fetch('data/trees.geojson').then(r=>r.json()),
+      fetch('data/furniture.geojson').then(r=>r.json())
+    ]);
+  }).then(([comps, trees, furn]) => {
+    compLayer = L.geoJSON(comps, {pane:'detail',
+      style: f => ({color:css('--bg'), weight:1.5, fillColor:gcolor(f.properties.g), fillOpacity:.82}),
+      onEachFeature: (f, l) => {
+        const p = f.properties;
+        l.bindTooltip(`<b>${esc(p.c)}</b>${EN[p.c]?` (${EN[p.c]})`:''}<br>maintenance class ${esc(p.r||'–')}<br><span style="opacity:.7">${esc(p.p)} · asset #${esc(p.id)}</span>`, {sticky:true});
+        l.on('click', () => selectPark(p.p, false));
+      }});
+    treeLayer = L.geoJSON(trees, {pane:'points',
+      pointToLayer: (f, ll) => L.circleMarker(ll, {radius:4, color:css('--bg'), weight:1.5, fillColor:css('--tree'), fillOpacity:.9}),
+      onEachFeature: (f, l) => l.bindTooltip(`<b>${esc(f.properties.s.split(' - ').pop())}</b><br><i>${esc(f.properties.s.split(' - ')[0])}</i><br>${esc(f.properties.g)}`)});
+    furnLayer = L.geoJSON(furn.features.filter(f=>f.properties.k==='bench'), {pane:'points',
+      pointToLayer: (f, ll) => L.marker(ll, {icon: L.divIcon({className:'', iconSize:[10,10],
+        html:`<div style="width:10px;height:10px;background:${css('--fg')};border:2px solid ${css('--bg')};border-radius:1px"></div>`})}),
+      onEachFeature: (f, l) => l.bindTooltip(`Bench: ${esc(f.properties.t)}`)});
+    updateDetail();
+  }).catch(err => console.error(err));
+})();
+</script>
+</body>
+</html>

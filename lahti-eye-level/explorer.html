@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lahti Pocket Parks — Explorer</title>
+<meta name="description" content="Explore Lahti's 420 pocket parks: eye-level greenery, meadows, resident feedback and what lies within a short walk.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Scope+One&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0f0d0b; --panel:rgba(26,10,0,.92); --panel-solid:#1A0A00; --line:#3a2c22;
+  --ink:#fff; --muted:#AAA; --faint:#777; --green:#00A347; --bright:#02D502;
+  --amber:#F5A623; --red:#ff5a4e;
+  --s-shrubs:#3987e5; --s-meadow:#d95926; --s-lawn:#199e70; --s-other:#5a5a55;
+  --serif:'Scope One', Georgia, serif;
+  --sans:'Source Sans 3','Source Sans Pro',Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+#map{position:fixed;inset:0;background:#141210}
+.leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.62) contrast(1.15)}
+.leaflet-container{font-family:var(--sans)}
+.leaflet-control-attribution{background:rgba(0,0,0,.55)!important;color:#888!important}
+.leaflet-control-attribution a{color:#aaa!important}
+.leaflet-bar a{background:#1b1b1b;color:#ddd;border-color:#333}
+.leaflet-top.leaflet-right{top:96px;right:14px}
+.leaflet-bar{border:1px solid #333!important}
+.leaflet-bar a:hover{background:#2a2a2a}
+.leaflet-tooltip.tt{background:#1b1b1b;color:#fff;border:1px solid #333;border-radius:2px;font:13px var(--sans);box-shadow:none;padding:4px 8px}
+.leaflet-tooltip.tt::before{display:none}
+.walking #map, .walking .leaflet-container{cursor:crosshair}
+
+/* back + city header */
+.back{position:fixed;left:20px;top:18px;z-index:500;display:flex;align-items:center;gap:8px;text-decoration:none;font-style:italic;font-size:.92em;color:#ddd;background:rgba(0,0,0,.45);padding:5px 10px 5px 6px;border-radius:2px}
+.back svg{width:18px;height:18px}
+.back:hover{color:#fff}
+.city{position:fixed;right:25px;top:22px;z-index:500;display:flex;align-items:center;gap:16px;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.8)}
+.city h2{font:400 2.3em/1 var(--serif);margin:0}
+.badge{display:flex;align-items:center;gap:10px}
+.badge .ring{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font:400 1.15em var(--serif);background:conic-gradient(var(--c) calc(var(--p)*1%), rgba(255,255,255,.12) 0);position:relative}
+.badge .ring::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#14100c}
+.badge .ring b{position:relative;z-index:1;font-weight:400}
+.badge .lbl{font:400 1.25em/1.1 var(--serif)}
+.badge .sub{display:block;font:400 .62em/1.5 var(--sans);color:rgba(255,255,255,.55);max-width:210px}
+
+/* left panel */
+.panel{position:fixed;left:20px;top:64px;bottom:20px;width:340px;z-index:500;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.panel .scroll{overflow-y:auto;padding:20px 22px 24px;flex:1}
+.panel h1{font:400 2em/1.1 var(--serif);margin:0 0 8px;color:var(--green)}
+.panel h3{font:700 .78em var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px}
+.intro{color:#ccc;margin:0 0 4px}
+.muted{color:var(--muted)} .small{font-size:.88em}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.metrics button{background:transparent;border:1px solid #4a3a2e;padding:9px 10px;text-align:left;line-height:1.2;border-radius:2px}
+.metrics button small{display:block;color:var(--faint);font-size:.8em;margin-top:2px}
+.metrics button:hover{border-color:#777}
+.metrics button[aria-pressed="true"]{background:#fff;color:#111;border-color:#fff}
+.metrics button[aria-pressed="true"] small{color:#555}
+.mdesc{color:#ccc;margin:12px 0 0;font-size:.95em}
+.ramp{height:10px;border-radius:1px;margin:12px 0 4px}
+.ramp-l{display:flex;justify-content:space-between;color:var(--muted);font-size:.82em}
+.leg{display:flex;align-items:center;gap:9px;margin:8px 0;color:#ddd;font-size:.92em;cursor:pointer;user-select:none}
+.leg input{accent-color:var(--green);margin:0}
+.leg .sw{width:14px;height:14px;border-radius:50%;flex:none}
+.leg:hover{opacity:.75}
+.walkbtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:6px;padding:12px 14px;background:var(--green);border:0;border-radius:2px;color:#fff;text-align:left}
+.walkbtn:hover{background:#039141}
+.walkbtn svg{flex:none;width:22px;height:22px}
+.walkbtn span small{display:block;opacity:.85;font-size:.85em}
+.dist{list-style:none;margin:0;padding:0}
+.dist li button{display:grid;grid-template-columns:96px 1fr 42px;align-items:center;gap:8px;width:100%;background:none;border:0;padding:4px 0;text-align:left;font-size:.9em;color:#ddd}
+.dist li button:hover{color:#fff}
+.dist li button:hover .bar i{filter:brightness(1.25)}
+.dist li button[aria-pressed="true"]{color:#fff;font-weight:700}
+.dist .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dist .bar{height:8px;background:rgba(255,255,255,.07)}
+.dist .bar i{display:block;height:100%}
+.dist .v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#2b2018;border:1px solid #4a3a2e;border-radius:12px;padding:2px 6px 2px 10px;font-size:.85em;margin-top:8px}
+.chip button{background:none;border:0;padding:0 4px;color:#aaa;font-size:1.1em;line-height:1}
+.panel-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);font-size:.9em}
+.panel-top button{background:none;border:0;color:#ddd;font-style:italic;display:flex;align-items:center;gap:6px;padding:4px 0}
+.panel-top button:hover{color:#fff}
+.big{font:400 3em/1 var(--serif);margin:14px 0 2px}
+.facts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 10px;margin-top:6px}
+.facts div b{display:block;font:400 1.55em/1.1 var(--serif)}
+.facts div span{color:var(--muted);font-size:.8em;line-height:1.2;display:block}
+.comp{display:flex;height:14px;margin:6px 0 8px;background:#2a2a2a}
+.comp i{display:block;height:100%}
+.complab{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.82em;color:#ccc}
+.complab span{display:inline-flex;align-items:center;gap:5px}
+.complab i{width:9px;height:9px;display:inline-block}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{border:1px solid #4a3a2e;padding:2px 8px;border-radius:12px;font-size:.85em;color:#ddd}
+.tags span b{color:var(--amber);font-weight:600;margin-left:4px}
+.note{border-left:2px solid var(--red);padding:4px 0 4px 10px;color:#ddd;font-size:.92em;margin-top:14px}
+.note.ok{border-color:var(--green)}
+.ghost{display:inline-block;margin-top:14px;background:none;border:1px solid #777;padding:7px 12px;border-radius:2px;font-size:.9em}
+.ghost:hover{border-color:#fff}
+.seg{display:flex;border:1px solid #4a3a2e;border-radius:2px;margin-top:10px}
+.seg button{flex:1;background:none;border:0;padding:7px 4px;font-size:.88em;line-height:1.15}
+.seg button+button{border-left:1px solid #4a3a2e}
+.seg button[aria-pressed="true"]{background:#fff;color:#111}
+.seg button small{display:block;opacity:.7;font-size:.82em}
+.plist{list-style:none;margin:0;padding:0}
+.plist li button{display:flex;justify-content:space-between;gap:8px;width:100%;background:none;border:0;border-bottom:1px solid #2e241c;padding:7px 0;text-align:left;font-size:.92em}
+.plist li button:hover{color:var(--bright)}
+.plist .d{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* histogram */
+.fbg{position:fixed;right:0;bottom:0;z-index:500;width:470px;background:var(--panel-solid);padding:18px 22px 16px;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.fbg-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.fbg-head h5{margin:0;font:700 1.02em var(--sans)}
+.fbg-head .rng{font:400 1.05em var(--serif)}
+.histo{position:relative;height:110px;margin-top:12px;touch-action:none}
+.histo svg{display:block;width:100%;height:92px}
+.histo .axis{display:flex;justify-content:space-between;color:var(--faint);font-size:.78em;margin-top:4px}
+.shade{position:absolute;top:0;height:92px;background:rgba(0,0,0,.62);pointer-events:none}
+.shade.l{left:0;border-right:1px solid #fff}
+.shade.r{right:0;border-left:1px solid #fff}
+.handle{position:absolute;top:30px;width:14px;height:32px;margin-left:-7px;background:#fff;border-radius:2px;cursor:ew-resize;z-index:3;display:grid;place-items:center;box-shadow:0 0 0 3px rgba(0,0,0,.4)}
+.handle::after{content:"";width:4px;height:14px;border-left:1px solid #888;border-right:1px solid #888}
+.handle:focus-visible{outline:2px solid var(--bright);outline-offset:2px}
+.fbg-desc{display:flex;justify-content:space-between;align-items:center;margin-top:6px;color:#ccc;font-size:.92em}
+.fbg-desc button{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:.92em;padding:0}
+
+.eyeleg{position:fixed;right:0;bottom:174px;z-index:500;width:470px;background:rgba(26,10,0,.88);border:1px solid var(--line);border-right:0;padding:10px 22px;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.85em;color:#ddd}
+.eyeleg[hidden]{display:none}
+.eyeleg b{width:100%;font-weight:700}
+.eyeleg span{display:contents}
+.eyeleg i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.eyeleg em{font-style:normal;white-space:nowrap}
+.loading{position:fixed;inset:0;display:grid;place-items:center;z-index:900;background:var(--bg);font:400 1.4em var(--serif);color:var(--muted);transition:opacity .4s}
+.loading.gone{opacity:0;pointer-events:none}
+
+@media (max-width:820px){
+  .eyeleg{position:static;width:auto;border-right:1px solid var(--line)}
+  html,body{height:auto}
+  #map{position:relative;height:62vh;inset:auto}
+  .back{position:absolute;left:12px;top:12px}
+  .city{position:absolute;right:12px;top:56px;font-size:.78em;gap:10px}
+  .city h2{display:none}
+  .badge .sub{max-width:140px}
+  .panel{position:static;width:auto;border:0;border-top:1px solid var(--line);background:var(--panel-solid)}
+  .panel .scroll{padding:18px 16px 22px}
+  .fbg{position:static;width:auto;border-left:0;padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">Gathering Lahti's pocket parks…</div>
+<div id="map" role="application" aria-label="Map of Lahti pocket parks"></div>
+
+<a class="back" href="index.html">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10.5"/><path d="M13.5 7.5 9 12l4.5 4.5"/></svg>
+  The story: Lahti at Eye Level
+</a>
+
+<div class="city" aria-live="polite">
+  <h2>Lahti</h2>
+  <div class="badge"><div class="ring" id="ring"><b id="ringVal">–</b></div>
+    <div class="lbl" id="ringLbl">–<span class="sub" id="ringSub"></span></div></div>
+</div>
+
+<aside class="panel" id="panel" aria-label="Explorer panel"></aside>
+
+<div class="eyeleg" id="eyeleg" hidden><b>At eye level</b><span id="eyelegItems"></span></div>
+
+<section class="fbg" aria-label="Filter parks by value">
+  <div class="fbg-head"><h5 id="hTitle">–</h5><span class="rng" id="hRange">–</span></div>
+  <div class="histo" id="histo">
+    <svg id="hSvg" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="shade l" id="shL"></div><div class="shade r" id="shR"></div>
+    <div class="handle" id="hL" tabindex="0" role="slider" aria-label="Lower bound"></div>
+    <div class="handle" id="hR" tabindex="0" role="slider" aria-label="Upper bound"></div>
+    <div class="axis"><span id="axL"></span><span id="axR"></span></div>
+  </div>
+  <div class="fbg-desc"><span id="hDesc">–</span><button type="button" id="hReset">reset</button></div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(async function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const nf = new Intl.NumberFormat('en-GB');
+  const pct = v => Math.round(v * 100) + '%';
+  const m2 = v => v >= 10000 ? (v / 10000).toFixed(1) + ' ha' : nf.format(Math.round(v)) + ' m²';
+
+  const RAMP = {
+    green: ['#123d24','#17603a','#0a8a44','#00b34d','#3fd66b','#a6f08f'],
+    amber: ['#3d2a0c','#6a4510','#9c6510','#d08a14','#f5a623','#ffd98a']
+  };
+  const lerp = (a, b, t) => {
+    const p = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const A = p(a), B = p(b);
+    return '#' + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, '0')).join('');
+  };
+  const rampAt = (name, t) => {
+    const r = RAMP[name], x = Math.max(0, Math.min(1, t)) * (r.length - 1), i = Math.min(r.length - 2, Math.floor(x));
+    return lerp(r[i], r[i + 1], x - i);
+  };
+
+  const mapped = p => p.share && Object.values(p.share).reduce((a, b) => a + b, 0) > 0.01;
+  const eye = p => p.share.shrubs + p.share.woodland + p.share.beds;
+  const shareEdges = [0, .01, .05, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0001];
+
+  const METRICS = {
+    eye: {
+      label: 'Eye-level green', tab: 'shrubs, trees, beds', ramp: 'green',
+      desc: 'Share of the park covered by shrub groups, woodland and planted beds: greenery that stands at or above eye height, the kind that frames a view or hides one.',
+      val: p => mapped(p) ? eye(p) : null, edges: shareEdges, fmt: pct,
+      lo: 'open', hi: 'enclosed',
+      city: ps => { let a = 0, s = 0; ps.forEach(p => { if (mapped(p)) { a += p.area; s += eye(p) * p.area; } }); return {v: s / a, txt: pct(s / a), p: s / a * 100, lbl: 'eye-level green', sub: 'area-weighted, pocket parks with a mapped inventory'}; }
+    },
+    meadow: {
+      label: 'Meadow share', tab: 'unmown grass', ramp: 'green',
+      desc: 'Share of the park managed as meadow, which is cut once or twice a year instead of weekly. Good for pollinators, and the most argued-about choice in resident feedback.',
+      val: p => mapped(p) ? p.share.meadow : null, edges: shareEdges, fmt: pct,
+      lo: 'mown', hi: 'meadow',
+      city: ps => { let a = 0, s = 0; ps.forEach(p => { if (mapped(p)) { a += p.area; s += p.share.meadow * p.area; } }); return {v: s / a, txt: pct(s / a), p: s / a * 100, lbl: 'meadow', sub: 'area-weighted share of pocket-park ground left as meadow'}; }
+    },
+    voices: {
+      label: 'Voices nearby', tab: 'feedback ≤ 50 m', ramp: 'amber',
+      desc: 'Public feedback items residents filed through the city’s eFeedback service within 50 m of the park, 2010–2026. Counts only; no texts are shown.',
+      val: p => p.feedback50, edges: [0,1,2,3,4,5,6,8,10,13,17,21,26], fmt: v => nf.format(v), int: true,
+      lo: 'quiet', hi: 'talked about',
+      city: ps => { const w = ps.filter(p => p.feedback50 > 0).length; return {v: w / ps.length, txt: pct(w / ps.length), p: w / ps.length * 100, lbl: 'have been talked about', sub: 'pocket parks with at least one feedback item within 50 m'}; }
+    },
+    homes: {
+      label: 'Neighbours', tab: 'homes ≤ 300 m', ramp: 'amber',
+      desc: 'Dwellings within 300 m (about a four-minute walk), from the city’s building register. The strongest predictor of how much feedback a park receives.',
+      val: p => p.dwellings300, edges: [0,50,100,150,200,300,400,600,800,1000,1500,2000,2500,3000,3600], fmt: v => nf.format(v), int: true,
+      lo: 'few', hi: 'many',
+      city: ps => { const s = [...ps].map(p => p.dwellings300).sort((a, b) => a - b), m = s[Math.floor(s.length / 2)]; return {v: m, txt: nf.format(m), p: Math.min(100, m / 1000 * 100), lbl: 'homes, median', sub: 'dwellings within 300 m of a typical pocket park'}; }
+    }
+  };
+
+  const GROUP = {
+    shrubs: ['Shrubs & hedges', '--s-shrubs'], woodland: ['Woodland', '#2e8b57'], beds: ['Planted beds', '#c86fb4'],
+    meadow: ['Meadow', '--s-meadow'], lawn: ['Lawn', '--s-lawn'], views: ['Open views', '#b8a46a'],
+    water: ['Water', '#4cc3d9'], paths: ['Paths & other', '--s-other']
+  };
+  const css = v => v.startsWith('--') ? getComputedStyle(document.documentElement).getPropertyValue(v).trim() : v;
+  const gcol = g => css((GROUP[g] || GROUP.paths)[1]);
+
+  // ---------- data ----------
+  const get = u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); });
+  const [parksFC, analysis] = await Promise.all([get('data/parks.geojson'), get('data/analysis.json')]);
+  const A = analysis.parks || {};
+
+  // ---------- map ----------
+  const map = L.map('map', {zoomControl: false, preferCanvas: true, minZoom: 10, maxZoom: 19}).setView([60.985, 25.66], 12);
+  L.control.zoom({position: 'topright'}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap contributors · Data: City of Lahti'
+  }).addTo(map);
+  const canvas = L.canvas({padding: .3});
+
+  const context = L.geoJSON({type: 'FeatureCollection', features: parksFC.features.filter(f => !f.properties.pocket)}, {
+    renderer: canvas, interactive: false,
+    style: {color: '#6b6258', weight: .6, fillColor: '#ffffff', fillOpacity: .035}
+  }).addTo(map);
+
+  const parks = [];
+  const polyLayer = L.geoJSON(null, {renderer: canvas});
+  const dotLayer = L.layerGroup().addTo(map);
+  const ringLayer = L.layerGroup().addTo(map);
+  parksFC.features.filter(f => f.properties.pocket).forEach(f => {
+    const p = f.properties;
+    const poly = L.geoJSON(f, {renderer: canvas}).getLayers()[0];
+    const c = poly.getBounds().getCenter();
+    const r = Math.max(3, Math.sqrt(p.area) / 7);
+    const dot = L.circleMarker(c, {renderer: canvas, radius: r, weight: .8, color: '#000', fillOpacity: .9});
+    const park = {p, a: A[p.name] || null, poly, dot, c, r};
+    [poly, dot].forEach(l => {
+      l.bindTooltip(() => `<b>${esc(p.name)}</b><br>${esc(METRICS[state.metric].label)}: ${valTxt(park)}`, {className: 'tt', sticky: true, direction: 'top'});
+      l.on('click', e => { L.DomEvent.stopPropagation(e); if (state.walking) return dropWalk(e.latlng); showPark(park); });
+    });
+    polyLayer.addLayer(poly);
+    dotLayer.addLayer(dot);
+    if (park.a && park.a.quadrant === 'contested')
+      ringLayer.addLayer(L.circleMarker(c, {renderer: canvas, radius: r + 4, weight: 1.6, color: css('--red'), fill: false, dashArray: '3 3', interactive: false}));
+    parks.push(park);
+  });
+  const P = parks.map(x => x.p);
+
+  // ---------- state ----------
+  const state = {metric: 'eye', lo: 0, hi: null, district: null, rings: true, unmapped: false, view: 'overview', walking: false, walk: null, radius: 400, park: null};
+  const M = () => METRICS[state.metric];
+  const binOf = (m, v) => { const e = m.edges; for (let i = e.length - 2; i >= 0; i--) if (v >= e[i]) return i; return 0; };
+  const nBins = () => M().edges.length - 1;
+  const colorOf = park => { const m = M(), v = m.val(park.p); return v == null ? '#4d4943' : rampAt(m.ramp, binOf(m, v) / (nBins() - 1)); };
+  const valTxt = park => { const v = M().val(park.p); return v == null ? 'no inventory mapped' : M().fmt(v); };
+  const inRange = park => {
+    const m = M(), v = m.val(park.p);
+    if (v == null) return state.unmapped;
+    const b = binOf(m, v);
+    return b >= state.lo && b < state.hi;
+  };
+  const passes = park => inRange(park) && (!state.district || park.p.district === state.district);
+
+  // ---------- styling ----------
+  const DETAIL = 17;
+  function restyle(){
+    const z = map.getZoom(), detail = z >= DETAIL;
+    parks.forEach(k => {
+      const on = passes(k), col = colorOf(k), sel = state.park === k;
+      k.dot.setStyle({fillColor: col, fillOpacity: on ? .92 : .1, opacity: on ? .9 : .15, color: sel ? '#fff' : '#000', weight: sel ? 2.5 : .8});
+      k.poly.setStyle(detail
+        ? {color: sel ? '#fff' : (on ? '#e8e8e8' : '#555'), weight: sel ? 2.5 : 1.2, fillOpacity: 0, dashArray: on ? null : '2 4'}
+        : {color: sel ? '#fff' : col, weight: sel ? 2.5 : .8, fillColor: col, fillOpacity: on ? .62 : .07, opacity: on ? 1 : .2, dashArray: null});
+    });
+    ringLayer.eachLayer(l => l.setStyle({opacity: state.rings ? .95 : 0}));
+  }
+  function syncZoom(){
+    const z = map.getZoom();
+    const showPolys = z >= 15;
+    if (showPolys && !map.hasLayer(polyLayer)) { polyLayer.addTo(map); map.removeLayer(dotLayer); }
+    if (!showPolys && map.hasLayer(polyLayer)) { map.removeLayer(polyLayer); dotLayer.addTo(map); }
+    if (state.rings && !showPolys) { if (!map.hasLayer(ringLayer)) ringLayer.addTo(map); } else map.removeLayer(ringLayer);
+    if (z >= DETAIL) loadDetail(); else detailLayers.forEach(l => map.removeLayer(l));
+    $('#eyeleg').hidden = z < DETAIL;
+    if (innerWidth > 820) $('#eyeleg').style.bottom = $('.fbg').offsetHeight + 'px';
+    restyle();
+  }
+  map.on('zoomend', syncZoom);
+
+  // eye-level detail: components, trees, benches (lazy)
+  let detailLayers = [], detailLoading = null;
+  function loadDetail(){
+    if (detailLayers.length) { detailLayers.forEach(l => l.addTo(map)); return; }
+    if (detailLoading) return;
+    detailLoading = Promise.all([get('data/components.geojson'), get('data/trees.geojson'), get('data/furniture.geojson')]).then(([c, t, f]) => {
+      const comps = L.geoJSON(c, {renderer: canvas, interactive: false,
+        style: ft => ({color: gcol(ft.properties.g), weight: .5, fillColor: gcol(ft.properties.g), fillOpacity: .6})});
+      const trees = L.geoJSON(t, {pointToLayer: (ft, ll) => L.circleMarker(ll, {renderer: canvas, radius: 3.2, weight: 1, color: '#0b2a12', fillColor: '#7be08e', fillOpacity: .95})
+        .bindTooltip(esc(ft.properties.s), {className: 'tt', direction: 'top'})});
+      const furn = L.geoJSON(f, {pointToLayer: (ft, ll) => L.circleMarker(ll, {renderer: canvas, radius: 2.6, weight: 1, color: '#000', fillColor: ft.properties.k === 'bench' ? '#fff' : '#999', fillOpacity: 1})
+        .bindTooltip(ft.properties.k === 'bench' ? 'Bench' : 'Litter bin', {className: 'tt', direction: 'top'})});
+      store.trees = t.features; store.furn = f.features;
+      detailLayers = [comps, trees, furn];
+      if (map.getZoom() >= DETAIL) { detailLayers.forEach(l => l.addTo(map)); polyLayer.bringToFront(); }
+      renderPanel();
+    });
+  }
+  const store = {trees: null, furn: null};
+
+  // ---------- city header ----------
+  function header(){
+    const m = M(), c = m.city(P);
+    const ring = $('#ring');
+    ring.style.setProperty('--p', c.p.toFixed(1));
+    ring.style.setProperty('--c', m.ramp === 'green' ? css('--bright') : css('--amber'));
+    $('#ringVal').textContent = c.txt.length > 4 ? '' : c.txt;
+    $('#ringLbl').firstChild.textContent = (c.txt.length > 4 ? c.txt + ' ' : '') + c.lbl;
+    $('#ringSub').textContent = c.sub;
+  }
+
+  // ---------- histogram ----------
+  const hist = {w: 0};
+  function drawHist(){
+    const m = M(), n = nBins(), counts = new Array(n).fill(0);
+    parks.forEach(k => { if (state.district && k.p.district !== state.district) return; const v = m.val(k.p); if (v != null) counts[binOf(m, v)]++; });
+    const max = Math.max(1, ...counts), W = 400, H = 92, bw = W / n;
+    $('#hSvg').setAttribute('viewBox', `0 0 ${W} ${H}`);
+    $('#hSvg').innerHTML = counts.map((c, i) => {
+      const h = c ? Math.max(2, c / max * (H - 4)) : 0;
+      return `<rect x="${i * bw + 1}" y="${H - h}" width="${bw - 2}" height="${h}" fill="${rampAt(m.ramp, i / (n - 1))}"><title>${c} parks</title></rect>`;
+    }).join('') + `<line x1="0" x2="${W}" y1="${H - .5}" y2="${H - .5}" stroke="#555"/>`;
+    $('#axL').textContent = m.fmt(m.edges[0]) + ' · ' + m.lo;
+    const vmax = Math.max(...parks.map(k => m.val(k.p) ?? 0));
+    $('#axR').textContent = m.hi + ' · max ' + m.fmt(vmax);
+    $('#hTitle').textContent = m.label;
+    placeHandles();
+  }
+  function rangeTxt(){
+    const m = M(), e = m.edges, n = nBins();
+    if (state.lo === 0 && state.hi === n) return 'all values';
+    if (m.int) {
+      const a = e[state.lo], b = e[state.hi] - 1;
+      return state.hi === n ? `${m.fmt(a)}+` : a === b ? m.fmt(a) : `${m.fmt(a)} – ${m.fmt(b)}`;
+    }
+    return `${m.fmt(e[state.lo])} – ${m.fmt(e[state.hi])}`;
+  }
+  function placeHandles(){
+    const n = nBins(), box = $('#histo').getBoundingClientRect(); hist.w = box.width;
+    const xl = state.lo / n * hist.w, xr = state.hi / n * hist.w;
+    $('#hL').style.left = xl + 'px'; $('#hR').style.left = xr + 'px';
+    $('#shL').style.width = xl + 'px'; $('#shR').style.width = (hist.w - xr) + 'px';
+    $('#shL').style.display = state.lo ? '' : 'none'; $('#shR').style.display = state.hi < n ? '' : 'none';
+    $('#hL').setAttribute('aria-valuetext', rangeTxt()); $('#hR').setAttribute('aria-valuetext', rangeTxt());
+    $('#hRange').textContent = rangeTxt();
+    const on = parks.filter(passes).length, base = parks.filter(k => !state.district || k.p.district === state.district).length;
+    $('#hDesc').textContent = `${on} of ${base} pocket parks shown${state.district ? ' in ' + state.district : ''}`;
+  }
+  function dragHandle(el, which){
+    const move = e => {
+      const box = $('#histo').getBoundingClientRect(), n = nBins();
+      let i = Math.round((e.clientX - box.left) / box.width * n);
+      if (which === 'lo') state.lo = Math.max(0, Math.min(i, state.hi - 1));
+      else state.hi = Math.min(n, Math.max(i, state.lo + 1));
+      placeHandles(); restyle();
+    };
+    el.addEventListener('pointerdown', e => { e.preventDefault(); el.setPointerCapture(e.pointerId); el.addEventListener('pointermove', move); });
+    el.addEventListener('pointerup', () => { el.removeEventListener('pointermove', move); renderPanel(); });
+    el.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0; if (!d) return;
+      e.preventDefault();
+      if (which === 'lo') state.lo = Math.max(0, Math.min(state.lo + d, state.hi - 1));
+      else state.hi = Math.min(nBins(), Math.max(state.hi + d, state.lo + 1));
+      placeHandles(); restyle(); renderPanel();
+    });
+  }
+  dragHandle($('#hL'), 'lo'); dragHandle($('#hR'), 'hi');
+  $('#hReset').onclick = () => { state.lo = 0; state.hi = nBins(); state.district = null; placeHandles(); drawHist(); restyle(); renderPanel(); };
+  window.addEventListener('resize', placeHandles);
+
+  // ---------- districts ----------
+  function districts(){
+    const m = M(), by = {};
+    parks.forEach(k => { const v = m.val(k.p); if (v == null) return; (by[k.p.district] ||= []).push(v); });
+    return Object.entries(by).filter(([, v]) => v.length >= 5)
+      .map(([d, v]) => ({d, n: v.length, mean: v.reduce((a, b) => a + b, 0) / v.length}))
+      .sort((a, b) => b.mean - a.mean);
+  }
+
+  // ---------- panel ----------
+  const icon = {
+    back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 6l-6 6 6 6"/></svg>',
+    walk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 3 3v3M8 12l2-4 4 1 2 4 3 1M10 8l-2 7"/></svg>'
+  };
+  function renderPanel(){
+    const el = $('#panel');
+    if (state.view === 'park' && state.park) el.innerHTML = parkHTML(state.park);
+    else if (state.view === 'walk') el.innerHTML = walkHTML();
+    else el.innerHTML = overviewHTML();
+    wirePanel();
+  }
+
+  function overviewHTML(){
+    const m = M(), ds = districts(), dmax = Math.max(...ds.map(d => d.mean), 1e-9);
+    const nUn = parks.filter(k => m.val(k.p) == null).length;
+    const tabs = Object.entries(METRICS).map(([k, v]) =>
+      `<button type="button" data-metric="${k}" aria-pressed="${k === state.metric}">${v.label}<small>${v.tab}</small></button>`).join('');
+    const ramp = `linear-gradient(90deg, ${RAMP[m.ramp].join(',')})`;
+    return `<div class="scroll">
+      <h1>Pocket parks</h1>
+      <p class="intro">Lahti has <b>${parks.length}</b> parks under 5,000 m². The city maps every lawn, shrub group and tree in them. Colour them by:</p>
+      <div class="metrics">${tabs}</div>
+      <p class="mdesc">${m.desc}</p>
+      <div class="ramp" style="background:${ramp}"></div>
+      <div class="ramp-l"><span>${m.lo}</span><span>${m.hi}</span></div>
+      <label class="leg"><span class="sw" style="background:transparent;border:1.6px dashed var(--red)"></span><input type="checkbox" id="tRings" ${state.rings ? 'checked' : ''}> Meadow debate: low-intensity care, repeated mowing complaints</label>
+      ${nUn ? `<label class="leg"><span class="sw" style="background:#4d4943"></span><input type="checkbox" id="tUn" ${state.unmapped ? 'checked' : ''}> Show ${nUn} parks with no mapped inventory</label>` : ''}
+      <p class="small muted" style="margin:6px 0 0">Circle size shows park area. Zoom in to street level to see individual shrub groups, trees and benches.</p>
+
+      <h3>What is within a short walk?</h3>
+      <button type="button" class="walkbtn" id="startWalk">${icon.walk}<span>Drop a walk on the map<small>Click anywhere to see the green space a resident can reach on foot</small></span></button>
+
+      <h3>Compare districts</h3>
+      <p class="small muted" style="margin:-4px 0 8px">Mean ${m.label.toLowerCase()} per pocket park (districts with 5+ parks). Click to focus.</p>
+      ${state.district ? `<span class="chip">${esc(state.district)}<button type="button" id="clrD" aria-label="Clear district">×</button></span>` : ''}
+      <ul class="dist">${ds.map(d => `<li><button type="button" data-d="${esc(d.d)}" aria-pressed="${d.d === state.district}">
+        <span class="nm">${esc(d.d)}</span><span class="bar"><i style="width:${d.mean / dmax * 100}%;background:${rampAt(m.ramp, binOf(m, d.mean) / (nBins() - 1))}"></i></span>
+        <span class="v">${m.int ? Math.round(d.mean) : pct(d.mean)}</span></button></li>`).join('')}</ul>
+      <p class="small muted" style="margin-top:22px">Sources: City of Lahti green-area register and eFeedback via lahti.asiointi.fi (aggregated; no feedback texts or individual locations published).</p>
+    </div>`;
+  }
+
+  function compHTML(share){
+    const order = ['shrubs','woodland','beds','meadow','lawn','views','water','paths'].filter(g => share[g] > 0.005);
+    return `<div class="comp">${order.map(g => `<i style="width:${share[g] * 100}%;background:${gcol(g)}" title="${GROUP[g][0]} ${pct(share[g])}"></i>`).join('')}</div>
+      <div class="complab">${order.map(g => `<span><i style="background:${gcol(g)}"></i>${GROUP[g][0]} ${pct(share[g])}</span>`).join('')}</div>`;
+  }
+
+  function parkHTML(k){
+    const p = k.p, a = k.a, m = M(), v = m.val(p);
+    const themes = Object.entries(p.fb_themes || {}).sort((x, y) => y[1] - x[1]);
+    let note = '';
+    if (a && a.quadrant === 'contested') note = `<div class="note">Meadow debate: ${pct(a.extensive_share)} of the park is in low-intensity care, and ${a.fb_mow_over} of ${a.fb_n} nearby feedback items are about mowing or overgrowth.</div>`;
+    else if (a && a.fb_n >= 3 && a.extensive_share >= .5) note = `<div class="note ok">Low-intensity care without a mowing dispute. Most nearby feedback is about other things.</div>`;
+    return `<div class="panel-top"><button type="button" id="toOverview">${icon.back} All pocket parks</button><span class="muted">${esc(p.district || '')}</span></div>
+    <div class="scroll">
+      <h1 style="color:#fff">${esc(p.name)}</h1>
+      <div class="muted">${m2(p.area)} · ${esc((p.rams || '').replace(/^\S+\s/, '') || 'care class unknown')}</div>
+      <div class="big" style="color:${colorOf(k)}">${v == null ? '–' : m.fmt(v)}</div>
+      <div class="muted small">${m.label.toLowerCase()}${v == null ? ' (no inventory mapped)' : ''}</div>
+      ${mapped(p) ? `<h3>What the ground is made of</h3>${compHTML(p.share)}` : ''}
+      <h3>At a glance</h3>
+      <div class="facts">
+        <div><b>${nf.format(p.plants)}</b><span>trees & plants mapped</span></div>
+        <div><b>${nf.format(p.species)}</b><span>species</span></div>
+        <div><b>${nf.format(p.shrub_n)}</b><span>shrub groups</span></div>
+        <div><b>${nf.format(p.benches)}</b><span>benches</span></div>
+        <div><b>${nf.format(p.bins)}</b><span>litter bins</span></div>
+        <div><b>${nf.format(p.dwellings300)}</b><span>homes ≤ 300 m</span></div>
+      </div>
+      ${p.top_species && p.top_species.length ? `<h3>Most planted</h3><div class="tags">${p.top_species.map(s => `<span>${esc(s)}</span>`).join('')}</div>` : ''}
+      <h3>What neighbours write about</h3>
+      ${p.feedback50 ? `<p class="small muted" style="margin:-4px 0 8px">${p.feedback50} feedback item${p.feedback50 > 1 ? 's' : ''} within 50 m, by theme</p>
+        ${themes.length ? `<div class="tags">${themes.map(([t, n]) => `<span>${esc(t)}<b>${n}</b></span>`).join('')}</div>` : '<p class="small muted">None matched a green-space theme.</p>'}`
+        : '<p class="small muted" style="margin-top:-4px">No feedback filed within 50 m.</p>'}
+      ${note}
+      <button type="button" class="ghost" id="eyeLevel">Zoom to eye level →</button>
+      <button type="button" class="ghost" id="walkHere" style="margin-left:6px">Walk from here</button>
+    </div>`;
+  }
+
+  function walkStats(){
+    const w = state.walk; if (!w) return null;
+    const near = parks.map(k => ({k, d: map.distance(w, k.c)})).filter(x => x.d <= state.radius).sort((a, b) => a.d - b.d);
+    let area = 0, eyeA = 0, meadowA = 0, fb = 0, plants = 0;
+    near.forEach(({k}) => { const p = k.p; area += p.area; fb += p.feedback50; plants += p.plants; if (mapped(p)) { eyeA += eye(p) * p.area; meadowA += p.share.meadow * p.area; } });
+    const within = arr => arr ? arr.filter(f => map.distance(w, L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0])) <= state.radius) : null;
+    const t = within(store.trees), f = within(store.furn);
+    return {near, area, eyeA, meadowA, fb, plants, trees: t && t.length, benches: f && f.filter(x => x.properties.k === 'bench').length, bins: f && f.filter(x => x.properties.k === 'bin').length};
+  }
+
+  function walkHTML(){
+    const s = walkStats(), mins = {200: '2½ min', 400: '5 min', 800: '10 min'};
+    const radii = [200, 400, 800].map(r => `<button type="button" data-r="${r}" aria-pressed="${r === state.radius}">${r} m<small>${mins[r]}</small></button>`).join('');
+    let body;
+    if (!s) body = `<p class="intro" style="margin-top:16px">Click anywhere on the map: a home, a school, a bus stop. You will see the pocket parks reachable on foot and what they hold.</p>`;
+    else {
+      const loadingTxt = '<span class="muted small">zoom in to load</span>';
+      body = `<div class="big">${s.near.length}</div><div class="muted small">pocket parks within ${state.radius} m as the crow flies</div>
+      <div class="facts" style="margin-top:16px">
+        <div><b>${m2(s.area)}</b><span>pocket-park ground</span></div>
+        <div><b>${m2(s.eyeA)}</b><span>eye-level green</span></div>
+        <div><b>${m2(s.meadowA)}</b><span>meadow</span></div>
+        <div><b>${s.trees == null ? '…' : nf.format(s.trees)}</b><span>park trees mapped</span></div>
+        <div><b>${s.benches == null ? '…' : nf.format(s.benches)}</b><span>benches</span></div>
+        <div><b>${nf.format(s.fb)}</b><span>park-feedback links*</span></div>
+      </div>
+      ${s.trees == null ? `<p class="small muted">Tree and bench counts load the first time you zoom to street level. <button type="button" class="ghost" id="loadDet" style="margin:4px 0 0;padding:3px 8px">load now</button></p>` : ''}
+      <h3>Reachable parks</h3>
+      ${s.near.length ? `<ul class="plist">${s.near.map(({k, d}) => `<li><button type="button" data-park="${esc(k.p.name)}"><span>${esc(k.p.name)}</span><span class="d">${Math.round(d)} m · ${valTxt(k)}</span></button></li>`).join('')}</ul>`
+        : '<p class="intro">None. This is a gap in the pocket-park network: a candidate for a new small park, or for opening up the nearest large one.</p>'}
+      <p class="small muted" style="margin-top:14px">*Feedback within 50 m of each park, summed. An item near two parks counts twice.</p>`;
+    }
+    return `<div class="panel-top"><button type="button" id="toOverview">${icon.back} All pocket parks</button><span class="muted">Walk</span></div>
+    <div class="scroll"><h1>A short walk</h1><div class="seg">${radii}</div>${body}</div>`;
+  }
+
+  function wirePanel(){
+    const el = $('#panel');
+    el.querySelectorAll('[data-metric]').forEach(b => b.onclick = () => setMetric(b.dataset.metric));
+    el.querySelectorAll('[data-d]').forEach(b => b.onclick = () => setDistrict(b.dataset.d === state.district ? null : b.dataset.d));
+    el.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { state.radius = +b.dataset.r; drawWalk(); renderPanel(); });
+    el.querySelectorAll('[data-park]').forEach(b => b.onclick = () => showPark(parks.find(k => k.p.name === b.dataset.park)));
+    const on = (id, fn) => { const x = el.querySelector('#' + id); if (x) x.onclick = fn; };
+    on('clrD', () => setDistrict(null));
+    on('startWalk', () => startWalk());
+    on('toOverview', () => { stopWalk(); state.view = 'overview'; state.park = null; restyle(); renderPanel(); });
+    on('eyeLevel', () => map.flyTo(offsetLL(state.park.c, 18), 18, {duration: .9}));
+    on('walkHere', () => { const c = state.park.c; startWalk(); dropWalk(c); });
+    on('loadDet', () => { loadDetail(); detailLoading && detailLoading.then(() => { if (map.getZoom() < DETAIL) detailLayers.forEach(l => map.removeLayer(l)); }); });
+    const r = el.querySelector('#tRings'); if (r) r.onchange = () => { state.rings = r.checked; syncZoom(); };
+    const u = el.querySelector('#tUn'); if (u) u.onchange = () => { state.unmapped = u.checked; restyle(); placeHandles(); };
+  }
+
+  // keep the focus point clear of the left panel on wide screens
+  const offsetLL = (ll, z) => innerWidth > 820 ? map.unproject(map.project(ll, z).subtract([180, -40]), z) : ll;
+
+  // ---------- actions ----------
+  function setMetric(k){
+    state.metric = k; state.lo = 0; state.hi = nBins();
+    header(); drawHist(); restyle(); renderPanel();
+  }
+  function setDistrict(d){
+    state.district = d;
+    if (d) { const b = L.latLngBounds(parks.filter(k => k.p.district === d).map(k => k.c)); const wide = innerWidth > 820; map.flyToBounds(b, {paddingTopLeft: [wide ? 400 : 30, 100], paddingBottomRight: [wide ? 60 : 30, wide ? 230 : 30], maxZoom: 15, duration: .8}); }
+    drawHist(); restyle(); renderPanel();
+  }
+  function showPark(k){
+    stopWalk();
+    state.park = k; state.view = 'park'; restyle(); renderPanel();
+    const b = k.poly.getBounds();
+    if (map.getZoom() < 15 || !map.getBounds().pad(-.25).contains(b)) { const z = Math.max(map.getZoom(), 16); map.flyTo(offsetLL(b.getCenter(), z), z, {duration: .8}); }
+  }
+
+  const walkLayer = L.layerGroup().addTo(map);
+  function startWalk(){ state.walking = true; state.view = 'walk'; state.park = null; document.body.classList.add('walking'); restyle(); renderPanel(); }
+  function stopWalk(){ state.walking = false; state.walk = null; document.body.classList.remove('walking'); walkLayer.clearLayers(); }
+  function dropWalk(ll){ state.walk = L.latLng(ll); drawWalk(); renderPanel(); }
+  function drawWalk(){
+    walkLayer.clearLayers(); if (!state.walk) return;
+    L.circle(state.walk, {radius: state.radius, color: '#fff', weight: 1.5, dashArray: '5 5', fillColor: '#fff', fillOpacity: .06, interactive: false}).addTo(walkLayer);
+    L.circleMarker(state.walk, {radius: 6, color: '#000', weight: 2, fillColor: '#fff', fillOpacity: 1, interactive: false}).addTo(walkLayer);
+    const s = walkStats();
+    s.near.forEach(({k}) => L.polyline([state.walk, k.c], {color: '#fff', weight: 1, opacity: .45, interactive: false}).addTo(walkLayer));
+    const b = state.walk.toBounds(state.radius * 2.4);
+    if (!map.getBounds().contains(b)) map.flyToBounds(b, {duration: .7});
+  }
+  map.on('click', e => { if (state.walking) dropWalk(e.latlng); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.view !== 'overview') { stopWalk(); state.view = 'overview'; state.park = null; restyle(); renderPanel(); } });
+
+  $('#eyelegItems').innerHTML = Object.keys(GROUP).map(g => `<em><i style="background:${gcol(g)}"></i>${GROUP[g][0]}</em>`).join('')
+    + '<em><i style="background:#7be08e;border-radius:50%"></i>Tree</em><em><i style="background:#fff;border-radius:50%"></i>Bench</em>';
+
+  // ---------- go ----------
+  state.hi = nBins();
+  header(); drawHist(); syncZoom(); renderPanel();
+  const wide = innerWidth > 820, hash = decodeURIComponent(location.hash.slice(1)), start = hash && parks.find(x => x.p.name === hash);
+  if (start) { map.setView(offsetLL(start.c, 17), 17, {animate: false}); showPark(start); }
+  else map.fitBounds(L.latLngBounds(parks.map(k => k.c)), wide ? {paddingTopLeft: [380, 90], paddingBottomRight: [40, 190]} : {padding: [20, 20]});
+  $('#loading').classList.add('gone');
+  setTimeout(() => $('#loading').remove(), 450);
+})().catch(err => {
+  document.getElementById('loading').textContent = 'Could not load the data. Open this page through a web server (e.g. GitHub Pages).';
+  console.error(err);
+});
+</script>
+</body>
+</html>
